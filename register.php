@@ -2,17 +2,15 @@
 require_once 'includes/db_conn.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    
     $first_name = htmlspecialchars($_POST['first_name']);
     $middle_name = htmlspecialchars($_POST['middle_name']);
     $last_name = htmlspecialchars($_POST['last_name']);
     $email = htmlspecialchars($_POST['email']);
-    $password = password_hash($_POST['password'], PASSWORD_BCRYPT); // Hash the password
+    $password = password_hash($_POST['password'], PASSWORD_BCRYPT);
     $phone_number = intval($_POST['phone_number']);
     $address = htmlspecialchars($_POST['address']);
 
     try {
-       
         $stmt = $conn->prepare("INSERT INTO users (first_name, middle_name, last_name, email, password, phone_number, address) 
                                 VALUES (:first_name, :middle_name, :last_name, :email, :password, :phone_number, :address)");
         $stmt->bindParam(':first_name', $first_name);
@@ -37,35 +35,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register</title>
+  <link rel="stylesheet" href="assets/css/style.css"> <!-- Link to the CSS file -->
 </head>
 <body>
-    <h2>Register</h2>
+  <div class="wrapper">
     <form method="POST" action="">
-        <label for="first_name">First Name:</label>
-        <input type="text" name="first_name" required><br>
-
-        <label for="middle_name">Middle Name:</label>
-        <input type="text" name="middle_name"><br>
-
-        <label for="last_name">Last Name:</label>
-        <input type="text" name="last_name" required><br>
-
-        <label for="email">Email:</label>
-        <input type="email" name="email" required><br>
-
-        <label for="password">Password:</label>
-        <input type="password" name="password" required><br>
-
-        <label for="phone_number">Phone Number:</label>
-        <input type="number" name="phone_number" required><br>
-
-        <label for="address">Address:</label>
-        <input type="text" name="address" required><br>
-
-        <button type="submit">Register</button>
+      <h2>Register</h2>
+      <div class="input-field">
+        <input type="text" name="first_name" required>
+        <label>First Name</label>
+      </div>
+      <div class="input-field">
+        <input type="text" name="middle_name">
+        <label>Middle Name</label>
+      </div>
+      <div class="input-field">
+        <input type="text" name="last_name" required>
+        <label>Last Name</label>
+      </div>
+      <div class="input-field">
+        <input type="email" name="email" required>
+        <label>Email</label>
+      </div>
+      <div class="input-field">
+        <input type="password" name="password" required>
+        <label>Password</label>
+      </div>
+      <div class="input-field">
+        <input type="number" name="phone_number" required>
+        <label>Phone Number</label>
+      </div>
+      <div class="input-field">
+        <input type="text" name="address" required>
+        <label>Address</label>
+      </div>
+      <button type="submit">Register</button>
+      <div class="register">
+        <p>Already have an account? <a href="login.php">Login</a></p>
+      </div>
     </form>
+  </div>
 </body>
 </html>

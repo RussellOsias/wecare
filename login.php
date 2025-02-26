@@ -1,29 +1,23 @@
 <?php
 session_start();
 require_once 'includes/db_conn.php';
+require_once 'includes/authentication.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = htmlspecialchars($_POST['email']);
     $password = $_POST['password'];
 
-    try {
-       
-        $stmt = $conn->prepare("SELECT * FROM users WHERE email = :email");
-        $stmt->bindParam(':email', $email);
-        $stmt->execute();
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($user && password_verify($password, $user['password'])) {
-           
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['email'] = $user['email'];
-            header("Location: dashboard.php");
-            exit();
-        } else {
-            echo "<script>alert('Invalid email or password.');</script>";
+    if (authenticateSession($email, $password)) {
+        // Generate a session token for token-based authentication
+        $token = generateSessionToken($_SESSION['user_id']);
+        if ($token) {
+            setcookie('auth_token', $token, time() + (86400), "/"); // Set token as a cookie
         }
-    } catch (PDOException $e) {
-        echo "<script>alert('Error: " . $e->getMessage() . "');</script>";
+
+        header("Location: dashboard.php");
+        exit();
+    } else {
+        echo "<script>alert('Invalid email or password.');</script>";
     }
 }
 ?>
@@ -31,21 +25,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <link rel="stylesheet" href="assets/css/style.css"> <!-- Link to the CSS file -->
 </head>
 <body>
-    <h2>Login</h2>
+  <div class="wrapper">
     <form method="POST" action="">
-        <label for="email">Email:</label>
-        <input type="email" name="email" required><br>
-
-        <label for="password">Password:</label>
-        <input type="password" name="password" required><br>
-
-        <button type="submit">Login</button>
+      <h2>Login</h2>
+      <div class="input-field">
+        <input type="email" name="email" required>
+        <label>Enter your email</label>
+      </div>
+      <div class="input-field">
+        <input type="password" name="password" required>
+        <label>Enter your password</label>
+      </div>
+      <div class="forget">
+        <label for="remember">
+          <input type="checkbox" id="remember">
+          <p>Remember me</p>
+        </label>
+        <a href="#">Forgot password?</a>
+      </div>
+      <button type="submit">Log In</button>
+      <div class="register">
+        <p>Don't have an account? <a href="register.php">Register</a></p>
+      </div>
     </form>
-    <p>Don't have an account? <a href="register.php">Register here</a>.</p>
+  </div>
 </body>
 </html>
