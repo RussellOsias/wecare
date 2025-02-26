@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 26, 2025 at 11:49 AM
+-- Generation Time: Feb 26, 2025 at 12:21 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -35,16 +35,20 @@ CREATE TABLE `users` (
   `email` varchar(200) NOT NULL,
   `password` varchar(200) NOT NULL,
   `phone_number` int(200) NOT NULL,
-  `address` varchar(200) NOT NULL
+  `address` varchar(200) NOT NULL,
+  `session_token` varchar(255) DEFAULT NULL,
+  `token_expiry` datetime DEFAULT NULL,
+  `reset_token` varchar(255) DEFAULT NULL,
+  `reset_token_expiry` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `first_name`, `middle_name`, `last_name`, `email`, `password`, `phone_number`, `address`) VALUES
-(1, 'Russell', 'B', 'Osias', 'osiasrussell@gmail.com', '$2y$10$yLvu/qLhWk4wGqEPxIQAhuDk2HtaI3zVgW5FjkUTmdcPYJcWm.yZK', 2147483647, 'Baluan'),
-(2, 'Mark John', 'asd', 'asdadasd', 'djrussellosias@gmail.com', '$2y$10$gpL553RmuU5B9krgiqL14.qb6NiA8t2UMGROiQECtOg1QMqHDGSzm', 123, '123');
+INSERT INTO `users` (`id`, `first_name`, `middle_name`, `last_name`, `email`, `password`, `phone_number`, `address`, `session_token`, `token_expiry`, `reset_token`, `reset_token_expiry`) VALUES
+(1, 'Russell', 'B', 'Osias', 'osiasrussell@gmail.com', '$2y$10$yLvu/qLhWk4wGqEPxIQAhuDk2HtaI3zVgW5FjkUTmdcPYJcWm.yZK', 2147483647, 'Baluan', NULL, NULL, '7f5f4f4e8f1e1e68bf96b97f9211ee0b4ddce46c6d25e1d00a7a9d6e634f92ca', '2025-02-26 13:13:22'),
+(2, 'Mark John', 'asd', 'asdadasd', 'djrussellosias@gmail.com', '$2y$10$gpL553RmuU5B9krgiqL14.qb6NiA8t2UMGROiQECtOg1QMqHDGSzm', 123, '123', NULL, NULL, NULL, NULL);
 
 --
 -- Indexes for dumped tables
