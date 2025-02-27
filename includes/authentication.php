@@ -6,10 +6,9 @@ require_once 'db_conn.php';
  */
 function authenticateSession($email, $password) {
     global $conn;
-
     try {
-        // Fetch user data from the database
-        $stmt = $conn->prepare("SELECT * FROM users WHERE email = :email");
+        // Fetch user data from the database, including the password column
+        $stmt = $conn->prepare("SELECT id, email, password, role FROM users WHERE email = :email");
         $stmt->bindParam(':email', $email);
         $stmt->execute();
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -18,12 +17,12 @@ function authenticateSession($email, $password) {
             // Successful login
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['email'] = $user['email'];
+            $_SESSION['role'] = $user['role']; // Store the user's role in the session
             return true;
         }
     } catch (PDOException $e) {
         error_log("Session-based authentication failed: " . $e->getMessage());
     }
-
     return false;
 }
 
@@ -32,10 +31,9 @@ function authenticateSession($email, $password) {
  */
 function authenticateToken($token) {
     global $conn;
-
     try {
         // Fetch user data from the database
-        $stmt = $conn->prepare("SELECT * FROM users WHERE session_token = :token AND token_expiry > NOW()");
+        $stmt = $conn->prepare("SELECT id, email, role FROM users WHERE session_token = :token AND token_expiry > NOW()");
         $stmt->bindParam(':token', $token);
         $stmt->execute();
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -44,12 +42,12 @@ function authenticateToken($token) {
             // Token is valid
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['email'] = $user['email'];
+            $_SESSION['role'] = $user['role']; // Store the user's role in the session
             return true;
         }
     } catch (PDOException $e) {
         error_log("Token-based authentication failed: " . $e->getMessage());
     }
-
     return false;
 }
 
@@ -58,7 +56,6 @@ function authenticateToken($token) {
  */
 function generateSessionToken($userId) {
     global $conn;
-
     // Generate a random token
     $token = bin2hex(random_bytes(32));
     $expiry = date('Y-m-d H:i:s', strtotime('+1 day')); // Token expires in 1 day
@@ -76,7 +73,6 @@ function generateSessionToken($userId) {
     } catch (PDOException $e) {
         error_log("Failed to generate session token: " . $e->getMessage());
     }
-
     return null;
 }
 ?>
