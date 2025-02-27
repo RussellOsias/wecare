@@ -31,12 +31,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header("Location: dashboard.php");
             exit();
         } else {
-            // Display error message for non-admin users
-            echo "<script>alert('You are not authorized to log in as an admin.');</script>";
-            session_destroy(); // Destroy session to prevent partial login
+            // Error handling for non-admin access
+            $errors[] = "You are not authorized to log in as an admin.";
+            session_destroy(); // Prevent partial login
         }
     } else {
-        echo "<script>alert('Invalid email or password.');</script>";
+        $errors[] = "Invalid email or password.";
+    }
+
+    // Redirect back to login page with error messages
+    if (!empty($errors)) {
+        $_SESSION['errors'] = $errors;
+        header("Location: login.php");
+        exit();
+    }
+
+    // Redirect back to login page with error messages
+    if (!empty($errors)) {
+      $_SESSION['errors'] = $errors;
+      header("Location: login.php");
+      exit();
     }
 }
 ?>
@@ -52,6 +66,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <div class="wrapper">
     <form method="POST" action="">
       <h2>Login</h2>
+
+      <?php
+        if (isset($_SESSION['errors'])) {
+            foreach ($_SESSION['errors'] as $error) {
+                echo "<div class='error-message'>$error</div>";
+            }
+            unset($_SESSION['errors']); // Clear errors after displaying
+        }
+      ?>
+
+
       <div class="input-field">
         <input type="email" name="email" required>
         <label>Enter your email</label>
