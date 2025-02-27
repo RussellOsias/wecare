@@ -3,7 +3,7 @@ session_start();
 require_once 'includes/db_conn.php';
 
 // Set the correct timezone
-date_default_timezone_set('America/New_York'); // Replace with your desired timezone
+date_default_timezone_set('Asia/Manila'); // Replace with your desired timezone
 
 if (isset($_SESSION['user_id'])) {
     // Clear the session token in the database

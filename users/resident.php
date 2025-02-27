@@ -1,35 +1,24 @@
 <?php
 session_start();
-require_once 'includes/db_conn.php';
+require_once '../includes/db_conn.php';
 
 // Redirect if not an admin
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header("Location: login.php");
+    header("Location: ../login.php");
     exit();
 }
 
-// Handle AJAX request for searching and filtering users
-if (isset($_GET['search']) || isset($_GET['role'])) {
-    $search = htmlspecialchars($_GET['search'] ?? '');
-    $role = htmlspecialchars($_GET['role'] ?? '');
-
+// Handle AJAX request for fetching residents
+if (isset($_GET['search'])) {
+    $search = htmlspecialchars($_GET['search']);
     try {
-        $query = "SELECT id, first_name, last_name, email, role FROM users WHERE 1=1";
-        $params = [];
-
+        $query = "SELECT id, first_name, last_name, email, role FROM users WHERE role = 'resident'";
         if ($search) {
             $query .= " AND (CONCAT(first_name, ' ', last_name) LIKE :search OR email LIKE :search)";
-            $params[':search'] = '%' . $search . '%';
         }
-
-        if ($role) {
-            $query .= " AND role = :role";
-            $params[':role'] = $role;
-        }
-
         $stmt = $conn->prepare($query);
-        foreach ($params as $key => $value) {
-            $stmt->bindValue($key, $value);
+        if ($search) {
+            $stmt->bindValue(':search', '%' . $search . '%');
         }
         $stmt->execute();
         $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -48,36 +37,20 @@ if (isset($_GET['search']) || isset($_GET['role'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Users</title>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <title>Resident Users</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
     <div class="dashboard-wrapper">
-        <?php include 'includes/sidebar.php'; ?>
-        
+      
         <main class="main-content">
             <div class="container">
-                <h2>Manage Users</h2>
+                <h2>Resident Users</h2>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <div style="display: flex; gap: 10px;">
-                        <div class="search-bar">
-                            <input type="text" id="searchInput" placeholder="Search by name or email">
-                        </div>
-                        <div class="filter-bar">
-                            <select id="roleFilter">
-                                <option value="">All Roles</option>
-                                <option value="admin">Admin</option>
-                                <option value="officer">Officer</option>
-                                <option value="resident">Resident</option>
-                            </select>
-                        </div>
+                    <div class="search-bar">
+                        <input type="text" id="searchInput" placeholder="Search by name or email">
                     </div>
-                    <div style="display: flex; gap: 10px;">
-                        <a href="users/admin.php" class="back-btn">Admins</a>
-                        <a href="users/officer.php" class="back-btn">Officers</a>
-                        <a href="users/resident.php" class="back-btn">Residents</a>
-                        <a href="add_users.php" class="back-btn">Add Users</a>
-                    </div>
+                    <a href="../manage_users.php" class="back-btn">Back to User Management</a>
                 </div>
                 <table id="userTable">
                     <thead>
@@ -93,14 +66,14 @@ if (isset($_GET['search']) || isset($_GET['role'])) {
                         <!-- User rows will be dynamically populated here -->
                     </tbody>
                 </table>
-                <a href="dashboard.php" class="back-btn">Back to Dashboard</a>
+                <a href="../dashboard.php" class="back-btn">Back to Dashboard</a>
             </div>
         </main>
     </div>
     <script>
         // Fetch users and populate the table
-        async function fetchUsers(search = '', role = '') {
-            const response = await fetch(`manage_users.php?search=${encodeURIComponent(search)}&role=${encodeURIComponent(role)}`);
+        async function fetchUsers(search = '') {
+            const response = await fetch(`resident.php?search=${encodeURIComponent(search)}`);
             const data = await response.json();
             const tbody = document.querySelector('#userTable tbody');
             tbody.innerHTML = ''; // Clear existing rows
@@ -118,7 +91,7 @@ if (isset($_GET['search']) || isset($_GET['role'])) {
                     <td>${user.email}</td>
                     <td>${user.role}</td>
                     <td>
-                        <button class="action-btn edit-btn" onclick="window.location.href='edit_user.php?id=${user.id}'">Edit</button>
+                        <button class="action-btn edit-btn" onclick="window.location.href='../edit_user.php?id=${user.id}'">Edit</button>
                         <button class="action-btn delete-btn" onclick="confirmDelete(${user.id})">Delete</button>
                     </td>
                 `;
@@ -133,23 +106,14 @@ if (isset($_GET['search']) || isset($_GET['role'])) {
         const searchInput = document.getElementById('searchInput');
         searchInput.addEventListener('input', function () {
             const query = this.value.trim();
-            const role = document.getElementById('roleFilter').value;
-            fetchUsers(query, role);
-        });
-
-        // Role filter functionality
-        const roleFilter = document.getElementById('roleFilter');
-        roleFilter.addEventListener('change', function () {
-            const query = searchInput.value.trim();
-            const role = this.value;
-            fetchUsers(query, role);
+            fetchUsers(query);
         });
 
         // Confirm deletion with a pop-up
         async function confirmDelete(userId) {
             const isConfirmed = confirm("Are you sure you want to delete this user?");
             if (isConfirmed) {
-                const response = await fetch('delete_user.php', {
+                const response = await fetch('../delete_user.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

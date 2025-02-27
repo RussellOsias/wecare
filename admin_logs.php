@@ -49,7 +49,7 @@ try {
                                 <td><?php echo htmlspecialchars($log['email']); ?></td>
                                 <td>
                                     <?php
-                                    // Convert login_time to human-readable format
+                            
                                     $login_time = strtotime($log['login_time']);
                                     echo date("F j, Y, g:i a", $login_time);
                                     ?>
