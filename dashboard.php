@@ -18,9 +18,9 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Fetch user data (name and profile picture)
+// Fetch user data (name, profile picture, and role)
 try {
-    $stmt = $conn->prepare("SELECT first_name, last_name, profile_picture FROM users WHERE id = :id");
+    $stmt = $conn->prepare("SELECT first_name, last_name, profile_picture, role FROM users WHERE id = :id");
     $stmt->bindParam(':id', $user_id);
     $stmt->execute();
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -128,6 +128,12 @@ try {
       color: #fff;
     }
 
+    /* Disabled card style */
+    .card.disabled {
+      pointer-events: none;
+      opacity: 0.6;
+    }
+
     @media (max-width: 768px) {
       .dashboard-header h1 {
         font-size: 1.5rem;
@@ -144,7 +150,6 @@ try {
     <?php include 'includes/sidebar.php'; ?>
     
     <main class="main-content">
-      
       <header class="dashboard-header">
         <h1>Welcome to Your Dashboard</h1>
         <div class="user-info">
@@ -154,7 +159,8 @@ try {
       </header>
 
       <section class="dashboard-stats">
-        <a href="manage_users.php" class="card">
+        <!-- Conditionally render or disable the "Total Users" card -->
+        <a href="manage_users.php" class="card <?php echo $user['role'] === 'resident' ? 'disabled' : ''; ?>">
           <i class="fas fa-users"></i> 
           <div>
             <span>Total Users</span>

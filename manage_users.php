@@ -2,8 +2,8 @@
 session_start();
 require_once 'includes/db_conn.php';
 
-// Redirect if not an admin
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+// Redirect if not authorized
+if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'], ['admin', 'officer'])) {
     header("Location: login.php");
     exit();
 }
@@ -76,7 +76,9 @@ if (isset($_GET['search']) || isset($_GET['role'])) {
                         <a href="users/admin.php" class="back-btn">Admins</a>
                         <a href="users/officer.php" class="back-btn">Officers</a>
                         <a href="users/resident.php" class="back-btn">Residents</a>
-                        <a href="add_users.php" class="back-btn">Add Users</a>
+                        <?php if ($_SESSION['role'] === 'admin'): ?>
+                            <a href="add_users.php" class="back-btn">Add Users</a>
+                        <?php endif; ?>
                     </div>
                 </div>
                 <table id="userTable">
@@ -118,8 +120,10 @@ if (isset($_GET['search']) || isset($_GET['role'])) {
                     <td>${user.email}</td>
                     <td>${user.role}</td>
                     <td>
-                        <button class="action-btn edit-btn" onclick="window.location.href='edit_user.php?id=${user.id}'">Edit</button>
-                        <button class="action-btn delete-btn" onclick="confirmDelete(${user.id})">Delete</button>
+                        <?php if ($_SESSION['role'] === 'admin'): ?>
+                            <button class="action-btn edit-btn" onclick="window.location.href='edit_user.php?id=${user.id}'">Edit</button>
+                            <button class="action-btn delete-btn" onclick="confirmDelete(${user.id})">Delete</button>
+                        <?php endif; ?>
                     </td>
                 `;
                 tbody.appendChild(row);

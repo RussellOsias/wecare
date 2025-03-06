@@ -1,11 +1,28 @@
 <?php
 session_start();
+
+// Redirect authenticated users to their dashboard
+if (isset($_SESSION['user_id'])) {
+    switch ($_SESSION['role']) {
+        case 'admin':
+        case 'officer':
+        case 'resident':
+            header("Location: dashboard.php");
+            exit();
+        default:
+            // Destroy invalid sessions
+            session_destroy();
+            header("Location: login.php");
+            exit();
+    }
+}
+
 require_once 'includes/db_conn.php';
 require_once 'includes/authentication.php';
 
 date_default_timezone_set('Asia/Manila');
 
-
+// Regenerate CAPTCHA on page load
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $_SESSION['captcha_code'] = substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 6);
 }
@@ -15,29 +32,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'];
     $captcha = $_POST['captcha'] ?? '';
 
-  
+    // CAPTCHA validation
     if (strcasecmp($captcha, $_SESSION['captcha_code']) !== 0) {
         $errors[] = "CAPTCHA verification failed";
     } else {
         if (authenticateSession($email, $password)) {
-            if ($_SESSION['role'] === 'admin') {
-                $token = generateSessionToken($_SESSION['user_id']);
-                if ($token) {
-                    setcookie('auth_token', $token, time() + 86400, "/");
-                }
-
-                $login_time = date("Y-m-d H:i:s");
-                $stmt = $conn->prepare("INSERT INTO admin_logs (user_id, email, login_time) VALUES (:user_id, :email, :login_time)");
-                $stmt->bindParam(':user_id', $_SESSION['user_id']);
-                $stmt->bindParam(':email', $_SESSION['email']);
-                $stmt->bindParam(':login_time', $login_time);
-                $stmt->execute();
-
-                header("Location: dashboard.php");
-                exit();
-            } else {
-                $errors[] = "Access denied. Only Admin users can log in.";
-                unset($_SESSION['user_id'], $_SESSION['email'], $_SESSION['role']);
+            // Role-based redirection
+            switch ($_SESSION['role']) {
+                case 'admin':
+                    $token = generateSessionToken($_SESSION['user_id']);
+                    if ($token) {
+                        setcookie('auth_token', $token, time() + 86400, "/");
+                    }
+                    
+                    // Log admin login
+                    $login_time = date("Y-m-d H:i:s");
+                    $stmt = $conn->prepare("INSERT INTO admin_logs (user_id, email, login_time) VALUES (:user_id, :email, :login_time)");
+                    $stmt->bindParam(':user_id', $_SESSION['user_id']);
+                    $stmt->bindParam(':email', $_SESSION['email']);
+                    $stmt->bindParam(':login_time', $login_time);
+                    $stmt->execute();
+                    
+                    header("Location: dashboard.php");
+                    exit();
+                
+                case 'officer':
+                case 'resident':
+                    header("Location: dashboard.php");
+                    exit();
+                
+                default:
+                    $errors[] = "Access denied. Invalid role.";
+                    session_destroy();
             }
         } else {
             $errors[] = "Invalid email or password.";
@@ -51,6 +77,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
