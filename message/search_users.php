@@ -25,9 +25,13 @@ try {
 }
 
 foreach ($users as $user) {
+    $profile_picture = !empty($user['profile_picture']) 
+        ? '../'.$user['profile_picture'] 
+        : '../assets/images/default_profile.png';
+
     echo '
-    <div class="user-item" onclick="selectUser('.$user['id'].')">
-        <img src="'.$user['profile_picture'].'" alt="Profile">
+    <div class="user-item" onclick="selectUser('.$user['id'].')" style="cursor: pointer;">
+        <img src="'.$profile_picture.'" alt="Profile" class="profile-pic">
         <div>
             <span>'.htmlspecialchars($user['first_name'].' '.$user['last_name']).'</span>
             <span class="role-badge">'.ucfirst($user['role']).'</span>
