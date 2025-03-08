@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 27, 2025 at 08:27 PM
+-- Generation Time: Mar 08, 2025 at 09:19 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -20,6 +20,8 @@ SET time_zone = "+00:00";
 --
 -- Database: `wecare`
 --
+CREATE DATABASE IF NOT EXISTS `wecare` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `wecare`;
 
 -- --------------------------------------------------------
 
@@ -40,19 +42,7 @@ CREATE TABLE `admin_logs` (
 --
 
 INSERT INTO `admin_logs` (`id`, `user_id`, `email`, `login_time`, `logout_time`) VALUES
-(1, 3, '123@gmail.com', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(2, 3, '123@gmail.com', '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(3, 3, '123@gmail.com', '0000-00-00 00:00:00', '2025-02-27 15:17:10'),
-(4, 3, '123@gmail.com', '2025-02-27 15:17:14', '2025-02-27 15:19:14'),
-(5, 3, '123@gmail.com', '2025-02-27 15:19:17', '2025-02-27 09:21:21'),
-(6, 3, '123@gmail.com', '2025-02-27 22:21:28', '2025-02-27 09:21:33'),
-(7, 3, '123@gmail.com', '2025-02-28 02:05:59', '2025-02-28 02:17:28'),
-(8, 3, '123@gmail.com', '2025-02-28 02:17:31', '2025-02-28 02:21:07'),
-(9, 3, '123@gmail.com', '2025-02-28 02:24:52', '2025-02-28 02:26:36'),
-(10, 3, '123@gmail.com', '2025-02-28 02:27:12', '2025-02-28 03:08:10'),
-(11, 2, 'djrussellosias@gmail.com', '2025-02-28 03:04:51', NULL),
-(12, 3, '123@gmail.com', '2025-02-28 03:08:28', NULL),
-(13, 2, 'djrussellosias@gmail.com', '2025-02-28 03:13:42', NULL);
+(18, 7, 'markjohnjopia1@gmail.com', '2025-03-08 09:15:39', NULL);
 
 -- --------------------------------------------------------
 
@@ -69,22 +59,6 @@ CREATE TABLE `messages` (
   `image_path` varchar(255) DEFAULT NULL,
   `reaction` enum('like','heart','none') DEFAULT 'none'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `messages`
---
-
-INSERT INTO `messages` (`id`, `sender_id`, `receiver_id`, `message`, `created_at`, `image_path`, `reaction`) VALUES
-(1, 3, 3, '123121', '2025-02-27 19:02:41', NULL, 'none'),
-(2, 3, 2, 'hi', '2025-02-27 19:05:06', NULL, 'none'),
-(3, 2, 3, 'kupal', '2025-02-27 19:05:11', NULL, 'none'),
-(4, 2, 3, '12312312123312', '2025-02-27 19:06:28', NULL, 'none'),
-(5, 2, 3, 'asddasad', '2025-02-27 19:06:41', NULL, 'none'),
-(6, 3, 2, 'asdsa', '2025-02-27 19:06:47', NULL, 'none'),
-(7, 3, 3, '123', '2025-02-27 19:13:07', '../uploads/67c0b943203d0_pic.jpg', 'none'),
-(8, 2, 3, '', '2025-02-27 19:18:55', '../uploads/67c0ba9f0a9b8_pic.jpg', 'none'),
-(9, 2, 3, '', '2025-02-27 19:23:53', '../uploads/67c0bbc9309c7_2025-02-23 19-48-01.mp4', 'none'),
-(10, 2, 3, '', '2025-02-27 19:24:26', '../uploads/67c0bbeaa8175_20250227-1924-15.0791146.mp4', 'none');
 
 -- --------------------------------------------------------
 
@@ -114,9 +88,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `first_name`, `middle_name`, `last_name`, `email`, `password`, `phone_number`, `address`, `session_token`, `token_expiry`, `reset_token`, `reset_token_expiry`, `role`, `profile_picture`) VALUES
-(2, 'Mark ', 'asd', 'asdadasd', 'djrussellosias@gmail.com', '$2y$10$gpL553RmuU5B9krgiqL14.qb6NiA8t2UMGROiQECtOg1QMqHDGSzm', 123, '123', '93f0676ca4e59bb931509624eb4e193200905a960e0877e12d18d9fade536835', '2025-03-01 03:13:42', NULL, NULL, 'admin', 'assets/images/profiles/67c0ba8612b9e_1360821.jpeg'),
-(3, 'Russell ', 'Bate', 'Osias', '123@gmail.com', '$2y$10$0BqvO0VPQKVNw3MkaMc5Nue.xWYK/r/BWxGinhe/3xld4rlKFlu/K', 123, '123123132', '108322204135d03d4f73916515b840d5686483f2d6c9e515fbeea97a4748a766', '2025-03-01 03:08:28', NULL, NULL, 'admin', 'assets/images/profiles/67c0b3b7b8dd9_pic.jpg'),
-(5, 'Russell', '123', '123', 'osiasrussell@gmail.com', '$2y$10$uzwmXx6gmxdYVImUUN4KGOFU9ZKJ.pkJIb99fOr0MdsCUxniC0l6a', 123, '123', NULL, NULL, NULL, NULL, 'resident', NULL);
+(7, 'Admin', 'Admin', 'Admin', 'markjohnjopia1@gmail.com', '$2y$10$z19ZVmVj87vJb7xorHPdNOhkw18aPP1rIQPii1qJmsAT/Fu0XqKOC', 2147483647, 'Brgy. Sinawal', '3e35ec1eed5462800e1b821376ae4aa92645080a437ccb8c0ac4f02605d50554', '2025-03-09 09:15:39', NULL, NULL, 'admin', 'assets/images/profiles/67c9bdce140fd_Screenshot 2024-09-18 172413.png');
 
 --
 -- Indexes for dumped tables
@@ -151,19 +123,19 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `admin_logs`
 --
 ALTER TABLE `admin_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `messages`
 --
 ALTER TABLE `messages`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(200) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(200) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- Constraints for dumped tables
