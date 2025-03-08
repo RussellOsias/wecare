@@ -27,6 +27,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($token) {
                     setcookie('auth_token', $token, time() + 86400, "/");
                 }
+                
+                // Log admin
+                $login_time = date("Y-m-d H:i:s");
+                $stmt = $conn->prepare("INSERT INTO admin_logs (user_id, email, login_time) VALUES (:user_id, :email, :login_time)");
+                $stmt->bindParam(':user_id', $_SESSION['user_id']);
+                $stmt->bindParam(':email', $_SESSION['email']);
+                $stmt->bindParam(':login_time', $login_time);
+                $stmt->execute();
+                
                 header("Location: dashboard.php");
                 exit();
             
@@ -38,9 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             default:
                 $errors[] = "Access denied. Invalid role.";
                 session_destroy();
-                header("Location: login.php");
-                exit();
-        }
+            }
     } else {
         $errors[] = "Invalid OTP. Please try again.";
     }
