@@ -1,8 +1,16 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 require_once 'db_conn.php';
 
 /**
  * Function to authenticate a user using session-based authentication.
+ *
+ * @param string $email The user's email.
+ * @param string $password The user's password.
+ * @return bool True if authentication is successful, false otherwise.
  */
 function authenticateSession($email, $password) {
     global $conn;
@@ -28,6 +36,9 @@ function authenticateSession($email, $password) {
 
 /**
  * Function to authenticate a user using token-based authentication.
+ *
+ * @param string $token The session token.
+ * @return bool True if authentication is successful, false otherwise.
  */
 function authenticateToken($token) {
     global $conn;
@@ -53,6 +64,9 @@ function authenticateToken($token) {
 
 /**
  * Function to generate a session token for a user.
+ *
+ * @param int $userId The user's ID.
+ * @return string|null The generated token, or null if failed.
  */
 function generateSessionToken($userId) {
     global $conn;
