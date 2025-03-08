@@ -27,7 +27,7 @@ function sendOTP($email, $otp) {
 
         // Content
         $mail->isHTML(true);
-        $mail->Subject = 'Your OTP for Login';
+        $mail->Subject = 'WeCare Verification Code';
         $mail->Body    = "Your OTP is: <b>$otp</b>";
 
         $mail->send();
