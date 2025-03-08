@@ -1,24 +1,9 @@
 <?php
 session_start();
 
-// Redirect authenticated users to their dashboard
-if (isset($_SESSION['user_id'])) {
-    switch ($_SESSION['role']) {
-        case 'admin':
-        case 'officer':
-        case 'resident':
-            header("Location: dashboard.php");
-            exit();
-        default:
-            // Destroy invalid sessions
-            session_destroy();
-            header("Location: login.php");
-            exit();
-    }
-}
-
 require_once 'includes/db_conn.php';
 require_once 'includes/authentication.php';
+require_once 'send_otp.php'; // Include the OTP sending function
 
 date_default_timezone_set('Asia/Manila');
 
@@ -37,33 +22,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "CAPTCHA verification failed";
     } else {
         if (authenticateSession($email, $password)) {
-            // Role-based redirection
-            switch ($_SESSION['role']) {
-                case 'admin':
-                    $token = generateSessionToken($_SESSION['user_id']);
-                    if ($token) {
-                        setcookie('auth_token', $token, time() + 86400, "/");
-                    }
-                    
-                    // Log admin login
-                    $login_time = date("Y-m-d H:i:s");
-                    $stmt = $conn->prepare("INSERT INTO admin_logs (user_id, email, login_time) VALUES (:user_id, :email, :login_time)");
-                    $stmt->bindParam(':user_id', $_SESSION['user_id']);
-                    $stmt->bindParam(':email', $_SESSION['email']);
-                    $stmt->bindParam(':login_time', $login_time);
-                    $stmt->execute();
-                    
-                    header("Location: dashboard.php");
-                    exit();
-                
-                case 'officer':
-                case 'resident':
-                    header("Location: dashboard.php");
-                    exit();
-                
-                default:
-                    $errors[] = "Access denied. Invalid role.";
-                    session_destroy();
+            // Generate OTP
+            $otp = rand(100000, 999999);
+            $_SESSION['otp'] = $otp;
+            $_SESSION['otp_email'] = $email;
+
+            // Send OTP
+            if (sendOTP($email, $otp)) {
+                header("Location: verify_otp.php");
+                exit();
+            } else {
+                $errors[] = "Failed to send OTP. Please try again.";
             }
         } else {
             $errors[] = "Invalid email or password.";
