@@ -133,7 +133,7 @@ if ($selected_user_id) {
 
         .message.sent {
             text-align: right;
-            color: #007bff;
+            color:rgb(255, 255, 255);
         }
 
         .message.received {
@@ -149,13 +149,13 @@ if ($selected_user_id) {
         .message-form input {
             flex-grow: 1;
             padding: 10px;
-            border: 1px solid #007bff;
+            border: 1px solidrgb(255, 255, 255);
             border-radius: 5px;
         }
 
         .message-form button {
             padding: 10px;
-            background: #007bff;
+            background:rgb(255, 255, 255);
             color: #fff;
             border: none;
             border-radius: 5px;
@@ -169,7 +169,7 @@ if ($selected_user_id) {
         .user-item img { width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; }
         .message img { max-width: 200px; margin: 5px 0; }
         .message-options { margin-left: auto; cursor: pointer; }
-        /* Add to your CSS file */
+   
 .role-badge {
     color: #ff0000; /* Red color */
     background: #ffe6e6;
@@ -215,7 +215,7 @@ if ($selected_user_id) {
                         <?php foreach ($users as $user): ?>
                         
 <div class="user-item" onclick="window.location.href='?user_id=<?php echo $user['id']; ?>'" style="cursor: pointer;">
-    <img src="<?php echo !empty($user['profile_picture']) ? '../'.$user['profile_picture'] : '../assets/images/default_profile.png'; ?>" 
+    <img src="<?php echo !empty($user['profile_picture']) ? '../'.$user['profile_picture'] : './../assets/images/default_profile.png'; ?>" 
          alt="Profile" class="profile-pic">
     <div>
         <span><?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?></span>
@@ -229,8 +229,7 @@ if ($selected_user_id) {
                     <div class="chat-box">
                         <?php if ($selected_user_id): ?>
                             <div class="chat-header">
-                                <img src="<?= $messages[0]['profile_picture'] ?? '../assets/images/default_profile.png' ?>" 
-                                     alt="Profile" class="chat-profile">
+                                
                                 <div>
                                     <span><?= htmlspecialchars($users[array_search($selected_user_id, array_column($users, 'id'))]['first_name']) ?></span>
                                     <span class="role-badge"><?= ucfirst($users[array_search($selected_user_id, array_column($users, 'id'))]['role']) ?></span>
