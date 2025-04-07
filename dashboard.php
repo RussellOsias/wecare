@@ -51,13 +51,13 @@ try {
   <link rel="stylesheet" href="./assets/css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
-    /* Dashboard Header Styles */
+  
     .dashboard-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 20px;
-      background: rgba(255, 255, 255, 0.1); /* Semi-transparent background */
+      background: rgba(255, 255, 255, 0.1); 
       border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     }
 
@@ -159,7 +159,7 @@ try {
       </header>
 
       <section class="dashboard-stats">
-        <!-- Conditionally render or disable the "Total Users" card -->
+     
         <a href="manage_users.php" class="card <?php echo $user['role'] === 'resident' ? 'disabled' : ''; ?>">
           <i class="fas fa-users"></i> 
           <div>
@@ -167,27 +167,36 @@ try {
             <strong><?php echo $totalUsers; ?></strong>
           </div>
         </a>
-        <div class="card">
+
+
+        <a href="users/admin.php" class="card <?php echo $user['role'] === 'resident' ? 'disabled' : ''; ?>">
           <i class="fas fa-user-shield"></i> 
           <div>
             <span>Admins</span>
             <strong><?php echo $roleCounts['admin'] ?? 0; ?></strong>
           </div>
-        </div>
-        <div class="card">
+          </a>
+
+
+          <a href="users/officer.php" class="card <?php echo $user['role'] === 'resident' ? 'disabled' : ''; ?>">
+     
           <i class="fas fa-user-tie"></i> 
           <div>
             <span>Officers</span>
             <strong><?php echo $roleCounts['officer'] ?? 0; ?></strong>
           </div>
-        </div>
-        <div class="card">
+          </a>
+
+
+        <a href="users/resident.php" class="card <?php echo $user['role'] === 'resident' ? 'disabled' : ''; ?>">
+     
           <i class="fas fa-user"></i> 
           <div>
             <span>Residents</span>
             <strong><?php echo $roleCounts['resident'] ?? 0; ?></strong>
           </div>
-        </div>
+          </a>
+
       </section>
     </main>
   </div>

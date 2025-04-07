@@ -50,12 +50,12 @@ try {
             padding: 8px 12px;
             border: 1px solid #ddd;
             border-radius: 4px;
-            color:rgb(0, 0, 0); /* Blue text for inputs */
+            color:rgb(0, 0, 0); 
         }
 
         .filter-btn {
             padding: 8px 16px;
-            background:rgb(0, 0, 0);
+            background:rgb(0, 17, 255);
             color: white;
             border: none;
             border-radius: 4px;
@@ -72,17 +72,17 @@ try {
         .log-table th {
             position: sticky;
             top: 0;
-            background: #f5f5f5;
+            background:rgb(217, 221, 235);
             padding: 12px;
             text-align: left;
             border-bottom: 2px solid #ddd;
-            color:rgb(0, 0, 0); /* Blue header text */
+            color:rgb(0, 0, 0); 
         }
 
         .log-table td {
             padding: 12px;
             border-bottom: 1px solid #eee;
-            color:rgb(0, 0, 0); /* Blue table text */
+            color:rgb(34, 29, 29); 
         }
 
         .log-table tr:hover {
@@ -111,7 +111,7 @@ try {
 
         .warning {
             background: #fff3cd;
-            color: #856404; /* Yellow status text */
+            color:rgb(133, 4, 4); /* Yellow status text */
         }
 
         @media (max-width: 768px) {
