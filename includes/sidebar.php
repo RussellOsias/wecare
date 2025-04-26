@@ -22,7 +22,7 @@
         <?php endif; ?>
         
         <?php if (in_array($_SESSION['role'], ['admin', 'officer'])): ?>
-        <li><a href=""><i class="fa fa-comments"></i> Complaints</a></li>
+        <li><a href="/admin_view_complaints.php"><i class="fa fa-exclamation-circle"></i> Complaints</a></li>
         <?php endif; ?>
     </ul>
 

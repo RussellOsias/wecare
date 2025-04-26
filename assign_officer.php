@@ -42,17 +42,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Assign Officer</title>
+  <link rel="stylesheet" href="./assets/css/style.css">
 </head>
 <body>
-  <h2>Assign Officer to Complaint #<?= htmlspecialchars($complaint_id) ?></h2>
-  <form method="POST">
-    <label for="officer_id">Select Officer:</label>
-    <select id="officer_id" name="officer_id" required>
-      <?php foreach ($officers as $officer): ?>
-        <option value="<?= $officer['id'] ?>"><?= htmlspecialchars($officer['first_name'] . ' ' . $officer['last_name']) ?></option>
-      <?php endforeach; ?>
-    </select><br><br>
-    <button type="submit">Assign Officer</button>
-  </form>
+  <div class="dashboard-wrapper">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="logo-container">
+        <img src="../images/logo.png" alt="Logo" class="logo"> <!-- Replace with your logo -->
+        <h2>WeCare</h2>
+      </div>
+      <ul>
+        <li><a href="#"><i class="fas fa-home"></i> Dashboard</a></li>
+        <li><a href="admin_view_complaints.php"><i class="fas fa-exclamation-circle"></i> Complaints</a></li>
+        <li><a href="#"><i class="fas fa-users"></i> Officers</a></li>
+      </ul>
+      <button class="logout-btn">Logout</button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="dashboard-header">
+        <h1>Assign Officer to Complaint #<?= htmlspecialchars($complaint_id) ?></h1>
+      </div>
+
+      <form method="POST" class="input-field">
+        <label for="officer_id">Select Officer:</label>
+        <select id="officer_id" name="officer_id" required>
+          <?php foreach ($officers as $officer): ?>
+            <option value="<?= $officer['id'] ?>"><?= htmlspecialchars($officer['first_name'] . ' ' . $officer['last_name']) ?></option>
+          <?php endforeach; ?>
+        </select>
+        <button type="submit" class="back-btn">Assign Officer</button>
+      </form>
+    </div>
+  </div>
 </body>
 </html>
