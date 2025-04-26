@@ -1,0 +1,6 @@
+[2025-04-26 15:55:37] Attempting to send OTP to email: osiasrussell@gmail.com
+[2025-04-26 15:55:39] Failed to send OTP to email: osiasrussell@gmail.com. Error: SMTP Error: Could not authenticate.
+[2025-04-26 16:02:49] Attempting to send OTP to email: osiasrussell@gmail.com
+[2025-04-26 16:02:53] OTP successfully sent to email: osiasrussell@gmail.com
+[2025-04-26 16:04:33] Attempting to send OTP to email: osiasrussell@gmail.com
+[2025-04-26 16:04:36] OTP successfully sent to email: osiasrussell@gmail.com
