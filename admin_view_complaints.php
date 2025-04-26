@@ -8,20 +8,50 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     exit();
 }
 
+// Handle priority filter
+$filter = isset($_GET['filter']) ? $_GET['filter'] : 'all';
+$where_clause = '';
+switch ($filter) {
+    case 'high':
+        $where_clause = "AND c.priority = 'high'";
+        break;
+    case 'medium':
+        $where_clause = "AND c.priority = 'medium'";
+        break;
+    case 'low':
+        $where_clause = "AND c.priority = 'low'";
+        break;
+    default:
+        $where_clause = "";
+}
+
 // Fetch all complaints from the database
 try {
-    $stmt = $conn->query("SELECT 
-        c.id, 
-        u.first_name, 
-        u.last_name, 
-        c.title, 
-        c.description, 
-        c.status, 
-        c.priority, 
-        c.created_at 
+    $stmt = $conn->prepare("
+        SELECT 
+            c.id, 
+            u.first_name AS resident_first_name, 
+            u.last_name AS resident_last_name, 
+            o.first_name AS officer_first_name, 
+            o.last_name AS officer_last_name, 
+            c.title, 
+            c.description, 
+            c.status, 
+            c.priority, 
+            c.created_at 
         FROM complaints c 
         JOIN users u ON c.resident_id = u.id 
-        WHERE c.status = 'pending' OR c.status = 'in_progress'");
+        LEFT JOIN users o ON c.assigned_officer_id = o.id 
+        WHERE (c.status = 'pending' OR c.status = 'in_progress') $where_clause
+        ORDER BY 
+            CASE 
+                WHEN c.priority = 'high' THEN 1 
+                WHEN c.priority = 'medium' THEN 2 
+                WHEN c.priority = 'low' THEN 3 
+                ELSE 4 
+            END
+    ");
+    $stmt->execute();
     $complaints = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
     die("Error fetching complaints: " . $e->getMessage());
@@ -34,7 +64,7 @@ try {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin - View Complaints</title>
-  <link rel="stylesheet" href="./assets/css/style.css">
+  <link rel="stylesheet" href="./assets/css/admin_complaint.css">
 </head>
 <body>
   <div class="dashboard-wrapper">
@@ -56,6 +86,15 @@ try {
     <div class="main-content">
       <div class="dashboard-header">
         <h1>Pending and In-Progress Complaints</h1>
+        <div class="filter-dropdown">
+          <label for="priority-filter">Filter by Priority:</label>
+          <select id="priority-filter" onchange="location = this.value;">
+            <option value="?filter=all" <?= $filter === 'all' ? 'selected' : '' ?>>All</option>
+            <option value="?filter=high" <?= $filter === 'high' ? 'selected' : '' ?>>High</option>
+            <option value="?filter=medium" <?= $filter === 'medium' ? 'selected' : '' ?>>Medium</option>
+            <option value="?filter=low" <?= $filter === 'low' ? 'selected' : '' ?>>Low</option>
+          </select>
+        </div>
       </div>
 
       <?php if (empty($complaints)): ?>
@@ -70,6 +109,7 @@ try {
               <th>Description</th>
               <th>Status</th>
               <th>Priority</th>
+              <th>Assigned Officer</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -77,14 +117,17 @@ try {
             <?php foreach ($complaints as $complaint): ?>
               <tr>
                 <td><?= htmlspecialchars($complaint['id']) ?></td>
-                <td><?= htmlspecialchars($complaint['first_name'] ?? 'Unknown') . ' ' . htmlspecialchars($complaint['last_name'] ?? 'Unknown') ?></td>
+                <td><?= htmlspecialchars($complaint['resident_first_name'] ?? 'Unknown') . ' ' . htmlspecialchars($complaint['resident_last_name'] ?? 'Unknown') ?></td>
                 <td><?= htmlspecialchars($complaint['title']) ?></td>
                 <td><?= htmlspecialchars($complaint['description']) ?></td>
                 <td><?= htmlspecialchars($complaint['status']) ?></td>
                 <td><?= htmlspecialchars($complaint['priority'] ?? 'Not Set') ?></td>
+                <td><?= htmlspecialchars($complaint['officer_first_name'] ?? 'Not Assigned') . ' ' . htmlspecialchars($complaint['officer_last_name'] ?? '') ?></td>
                 <td>
-                  <a href="set_priority.php?id=<?= $complaint['id'] ?>" class="back-btn">Set Priority</a>
-                  <a href="assign_officer.php?id=<?= $complaint['id'] ?>" class="back-btn">Assign Officer</a>
+                  <div class="action-buttons">
+                    <a href="set_priority.php?id=<?= $complaint['id'] ?>" class="btn btn-priority">Set Priority</a>
+                    <a href="assign_officer.php?id=<?= $complaint['id'] ?>" class="btn btn-officer">Assign Officer</a>
+                  </div>
                 </td>
               </tr>
             <?php endforeach; ?>

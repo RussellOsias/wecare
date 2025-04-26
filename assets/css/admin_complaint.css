@@ -1,0 +1,204 @@
+/* General Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Open Sans", sans-serif;
+  }
+  
+  body {
+    display: flex;
+    align-items: stretch;
+    min-height: 100vh;
+    width: 100%;
+    background: url("../images/image.jpg"), #000;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    color: #fff;
+  }
+  
+  .dashboard-wrapper {
+    display: flex;
+    width: 100%;
+  }
+  
+  /* Sidebar Styles */
+  .sidebar {
+    width: 250px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 20px;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-right: 2px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  .logo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .logo-container .logo {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  }
+  
+  .logo-container h2 {
+    font-size: 1.2rem;
+    margin-top: 10px;
+    color: #007bff;
+    text-align: center;
+  }
+  
+  .sidebar ul {
+    list-style: none;
+    margin-top: 20px;
+  }
+  
+  .sidebar ul li {
+    margin-bottom: 10px;
+  }
+  
+  .sidebar ul li a {
+    display: flex;
+    align-items: center;
+    color: #fff;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: 0.3s ease;
+  }
+  
+  .sidebar ul li a i {
+    margin-right: 10px;
+    font-size: 1.2rem;
+  }
+  
+  .sidebar ul li a:hover {
+    color: #007bff;
+  }
+  
+  .logout-btn {
+    width: 100%;
+    padding: 10px;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.3s ease;
+  }
+  
+  .logout-btn:hover {
+    background: #0056b3;
+  }
+  
+  /* Main Content Styles */
+  .main-content {
+    flex-grow: 1;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    margin: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+  }
+  
+  .dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .filter-dropdown label {
+    color: black; /* Black text for the label */
+    margin-right: 10px;
+    font-size: 1rem;
+  }
+  
+  .filter-dropdown select {
+    padding: 8px;
+    border: 2px solid #007bff;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.1); /* Semi-transparent white */
+    color: #fff;
+    cursor: pointer;
+  }
+  
+  .filter-dropdown select:focus {
+    border-color: #fff;
+  }
+  
+  /* Table Styling */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  
+  table th,
+  table td {
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: left;
+    color: #fff;
+  }
+  
+  table th {
+    background: rgba(0, 123, 255, 0.5);
+  }
+  
+  /* Actions Column */
+  .action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* Space between buttons */
+  }
+  
+  /* Buttons */
+  .btn {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    color: #fff; /* White text on buttons */
+    text-decoration: none;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.3s ease;
+  }
+  
+  .btn-priority {
+    background: #ff5722; /* Orange for priority */
+  }
+  
+  .btn-officer {
+    background: #2196f3; /* Blue for officer assignment */
+  }
+  
+  .btn:hover {
+    opacity: 0.9; /* Slight darkening on hover */
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    table {
+      display: block;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+  
+    th, td {
+      min-width: 150px;
+    }
+  }
