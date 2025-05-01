@@ -17,6 +17,10 @@
         <li><a href="/admin_logs.php"><i class="fas fa-bell"></i> Admin Logs</a></li>
         <?php endif; ?>
 
+        <?php if ($_SESSION['role'] === 'admin'): ?>
+        <li><a href="/admin_activity_logs.php"><i class="fas fa-bell"></i> Admin Activity Logs</a></li>
+        <?php endif; ?>
+
         <?php if (in_array($_SESSION['role'], ['admin', 'officer','resident'])): ?>
         <li><a href="message/index.php"><i class="fa fa-comments"></i> Message</a></li>
         <?php endif; ?>
