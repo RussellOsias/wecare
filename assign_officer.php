@@ -11,6 +11,19 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
 // Get the complaint ID from the URL
 $complaint_id = $_GET['id'];
 
+// Fetch complaint details with resident information
+try {
+    $stmt = $conn->prepare("SELECT c.*, u.id as resident_id FROM complaints c JOIN users u ON c.resident_id = u.id WHERE c.id = ?");
+    $stmt->execute([$complaint_id]);
+    $complaint = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$complaint) {
+        die("Complaint not found.");
+    }
+} catch (Exception $e) {
+    die("Error fetching complaint: " . $e->getMessage());
+}
+
 // Fetch all officers
 try {
     $stmt = $conn->query("SELECT id, first_name, last_name FROM users WHERE role = 'officer'");
@@ -23,14 +36,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $officer_id = $_POST['officer_id'];
 
     try {
+        $conn->beginTransaction();
+        
+        // Update complaint assignment
         $stmt = $conn->prepare("UPDATE complaints SET assigned_officer_id = :officer_id, status = 'in_progress' WHERE id = :id");
         $stmt->bindParam(':officer_id', $officer_id);
         $stmt->bindParam(':id', $complaint_id);
         $stmt->execute();
-
+        
+        // Get officer's name for logging
+        $officer_stmt = $conn->prepare("SELECT first_name, last_name FROM users WHERE id = ?");
+        $officer_stmt->execute([$officer_id]);
+        $officer = $officer_stmt->fetch(PDO::FETCH_ASSOC);
+        $officer_name = $officer['first_name'] . ' ' . $officer['last_name'];
+        
+        // Log activity
+        $action = "Assigned officer $officer_name to complaint #$complaint_id";
+        $log_stmt = $conn->prepare("INSERT INTO admin_activity_logs 
+            (admin_id, activity_type, action, user_affected_id) 
+            VALUES (?, ?, ?, ?)");
+        
+        $log_stmt->execute([
+            $_SESSION['user_id'],
+            'Complaint Assignment',  // Specific activity type
+            $action,
+            $complaint['resident_id']  // The resident who made the complaint
+        ]);
+        
+        $conn->commit();
+        
         header("Location: admin_view_complaints.php");
         exit();
     } catch (Exception $e) {
+        $conn->rollBack();
         die("Error assigning officer: " . $e->getMessage());
     }
 }
@@ -49,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <!-- Sidebar -->
     <div class="sidebar">
       <div class="logo-container">
-        <img src="../images/logo.png" alt="Logo" class="logo"> <!-- Replace with your logo -->
+        <img src="../images/logo.png" alt="Logo" class="logo">
         <h2>WeCare</h2>
       </div>
       <ul>
