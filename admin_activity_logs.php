@@ -17,7 +17,8 @@ try {
             admin.first_name as admin_first_name,
             admin.last_name as admin_last_name,
             affected.first_name as affected_first_name,
-            affected.last_name as affected_last_name
+            affected.last_name as affected_last_name,
+            al.user_affected_id as affected_id
         FROM 
             admin_activity_logs al
         LEFT JOIN 
@@ -229,7 +230,14 @@ try {
                                     <td><?php echo htmlspecialchars($log['action']); ?></td>
                                     <td>
                                         <?php if ($log['user_affected_id']): ?>
-                                            <?php echo htmlspecialchars($log['affected_first_name'] . ' ' . $log['affected_last_name']); ?>
+                                            <?php if (!empty($log['affected_first_name'])): ?>
+                                                <?php echo htmlspecialchars($log['affected_first_name'] . ' ' . $log['affected_last_name']); ?>
+                                            <?php else: ?>
+                                                User #<?php echo htmlspecialchars($log['user_affected_id']); ?>
+                                                <?php if ($log['activity_type'] === 'user_deletion'): ?>
+                                                    (Deleted)
+                                                <?php endif; ?>
+                                            <?php endif; ?>
                                         <?php else: ?>
                                             N/A
                                         <?php endif; ?>
