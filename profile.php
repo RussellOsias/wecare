@@ -109,13 +109,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Format the action log
             $action = "$user_name updated their profile: " . implode(', ', $changes);
             
-            // Log to admin_activity_logs (following your table structure exactly)
+            // Log to admin_activity_logs with activity_type
             $log_stmt = $conn->prepare("INSERT INTO admin_activity_logs 
-                (admin_id, action, user_affected_id) 
-                VALUES (:admin_id, :action, :user_affected_id)");
+                (admin_id, activity_type, action, user_affected_id) 
+                VALUES (:admin_id, :activity_type, :action, :user_affected_id)");
             
             $log_stmt->execute([
                 ':admin_id' => $user_id,
+                ':activity_type' => 'Profile Update',  // Specific activity type
                 ':action' => $action,
                 ':user_affected_id' => $user_id
             ]);

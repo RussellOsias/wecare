@@ -75,10 +75,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $user_name = $first_name . ' ' . $last_name;
             
             // Format the action log
-            $action = "$admin_name Updated $user_name: " . implode(', ', $changes);
+            $action = "$admin_name updated user $user_name: " . implode(', ', $changes);
             
-            $log_stmt = $conn->prepare("INSERT INTO admin_activity_logs (admin_id, action, user_affected_id) VALUES (:admin_id, :action, :user_affected_id)");
+            // Log to admin_activity_logs with activity_type
+            $log_stmt = $conn->prepare("INSERT INTO admin_activity_logs 
+                (admin_id, activity_type, action, user_affected_id) 
+                VALUES (:admin_id, :activity_type, :action, :user_affected_id)");
+            
             $log_stmt->bindParam(':admin_id', $_SESSION['user_id']);
+            $log_stmt->bindValue(':activity_type', 'User Update'); // Specific activity type
             $log_stmt->bindParam(':action', $action);
             $log_stmt->bindParam(':user_affected_id', $user_id);
             $log_stmt->execute();
