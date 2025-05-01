@@ -12,7 +12,7 @@ $user_id = $_SESSION['user_id'];
 
 // Fetch user data
 try {
-    $stmt = $conn->prepare("SELECT * FROM users WHERE id = :id");
+    $stmt = $conn->prepare("SELECT id, first_name, middle_name, last_name, email, phone_number, address, profile_picture FROM users WHERE id = :id");
     $stmt->bindParam(':id', $user_id);
     $stmt->execute();
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -29,63 +29,121 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $first_name = htmlspecialchars($_POST['first_name']);
     $middle_name = htmlspecialchars($_POST['middle_name']);
     $last_name = htmlspecialchars($_POST['last_name']);
-    $email = htmlspecialchars($_POST['email']);
-    $phone_number = intval($_POST['phone_number']);
+    $phone_number = htmlspecialchars($_POST['phone_number']);
     $address = htmlspecialchars($_POST['address']);
-
+    
+    // Use original email from database
+    $email = $user['email'];
+    $profile_picture = $user['profile_picture'];
+    
     // Handle profile picture upload
-    $profile_picture = $user['profile_picture']; // Default to existing picture
     if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] === UPLOAD_ERR_OK) {
         $upload_dir = 'assets/images/profiles/';
         if (!is_dir($upload_dir)) {
-            mkdir($upload_dir, 0777, true); // Create directory if it doesn't exist
+            mkdir($upload_dir, 0777, true);
         }
-
-        $file_name = uniqid() . '_' . basename($_FILES['profile_picture']['name']);
+        
+        $file_ext = pathinfo($_FILES['profile_picture']['name'], PATHINFO_EXTENSION);
+        $file_name = uniqid() . '.' . $file_ext;
         $file_path = $upload_dir . $file_name;
 
         if (move_uploaded_file($_FILES['profile_picture']['tmp_name'], $file_path)) {
-            $profile_picture = $file_path; // Save the new file path
-        } else {
-            echo "<script>alert('Failed to upload profile picture.');</script>";
+            // Delete old profile picture if it exists and isn't the default
+            if ($profile_picture && $profile_picture !== 'assets/images/default_profile.png') {
+                @unlink($profile_picture);
+            }
+            $profile_picture = $file_path;
         }
+    }
+    
+    // Initialize an array to track changes
+    $changes = [];
+    
+    // Check each field for changes
+    if ($user['first_name'] !== $first_name) {
+        $changes[] = "First name changed from '{$user['first_name']}' to '$first_name'";
+    }
+    if ($user['middle_name'] !== $middle_name) {
+        $changes[] = "Middle name changed from '{$user['middle_name']}' to '$middle_name'";
+    }
+    if ($user['last_name'] !== $last_name) {
+        $changes[] = "Last name changed from '{$user['last_name']}' to '$last_name'";
+    }
+    if ($user['phone_number'] !== $phone_number) {
+        $changes[] = "Phone number changed from '{$user['phone_number']}' to '$phone_number'";
+    }
+    if ($user['address'] !== $address) {
+        $changes[] = "Address changed from '{$user['address']}' to '$address'";
+    }
+    if (isset($file_path)) {
+        $changes[] = "Profile picture updated";
     }
 
     try {
-        $stmt = $conn->prepare("UPDATE users SET 
-            first_name = :first_name, 
-            middle_name = :middle_name, 
-            last_name = :last_name, 
-            email = :email, 
-            phone_number = :phone_number, 
-            address = :address,
-            profile_picture = :profile_picture 
-            WHERE id = :id");
+        // Only update if there are changes
+        if (!empty($changes)) {
+            $conn->beginTransaction();
+            
+            // Update user
+            $stmt = $conn->prepare("UPDATE users SET 
+                first_name = :first_name, 
+                middle_name = :middle_name, 
+                last_name = :last_name, 
+                phone_number = :phone_number, 
+                address = :address,
+                profile_picture = :profile_picture 
+                WHERE id = :id");
 
-        $stmt->bindParam(':first_name', $first_name);
-        $stmt->bindParam(':middle_name', $middle_name);
-        $stmt->bindParam(':last_name', $last_name);
-        $stmt->bindParam(':email', $email);
-        $stmt->bindParam(':phone_number', $phone_number);
-        $stmt->bindParam(':address', $address);
-        $stmt->bindParam(':profile_picture', $profile_picture);
-        $stmt->bindParam(':id', $user_id);
-
-        if ($stmt->execute()) {
-            echo "<script>alert('Profile updated successfully!');</script>";
-            // Refresh user data after update
-            $stmt = $conn->prepare("SELECT * FROM users WHERE id = :id");
+            $stmt->bindParam(':first_name', $first_name);
+            $stmt->bindParam(':middle_name', $middle_name);
+            $stmt->bindParam(':last_name', $last_name);
+            $stmt->bindParam(':phone_number', $phone_number);
+            $stmt->bindParam(':address', $address);
+            $stmt->bindParam(':profile_picture', $profile_picture);
+            $stmt->bindParam(':id', $user_id);
+            $stmt->execute();
+            
+            // Get user's full name (using updated values)
+            $user_name = $first_name . ' ' . $last_name;
+            
+            // Format the action log
+            $action = "$user_name updated their profile: " . implode(', ', $changes);
+            
+            // Log to admin_activity_logs (following your table structure exactly)
+            $log_stmt = $conn->prepare("INSERT INTO admin_activity_logs 
+                (admin_id, action, user_affected_id) 
+                VALUES (:admin_id, :action, :user_affected_id)");
+            
+            $log_stmt->execute([
+                ':admin_id' => $user_id,
+                ':action' => $action,
+                ':user_affected_id' => $user_id
+            ]);
+            
+            $conn->commit();
+            
+            // Refresh user data
+            $stmt = $conn->prepare("SELECT id, first_name, middle_name, last_name, email, phone_number, address, profile_picture FROM users WHERE id = :id");
             $stmt->bindParam(':id', $user_id);
             $stmt->execute();
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            echo "<script>alert('Profile updated successfully!'); window.location.href='profile.php';</script>";
+            exit();
         } else {
-            echo "<script>alert('Failed to update profile. Please try again.');</script>";
+            echo "<script>alert('No changes detected.');</script>";
         }
     } catch (PDOException $e) {
-        echo "<script>alert('Error: " . $e->getMessage() . "');</script>";
+        $conn->rollBack();
+        // Delete uploaded file if transaction failed
+        if (isset($file_path) && file_exists($file_path)) {
+            unlink($file_path);
+        }
+        echo "<script>alert('Error: " . addslashes($e->getMessage()) . "');</script>";
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
