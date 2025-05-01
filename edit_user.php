@@ -32,27 +32,70 @@ try {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $first_name = htmlspecialchars($_POST['first_name']);
     $last_name = htmlspecialchars($_POST['last_name']);
-    $email = htmlspecialchars($_POST['email']);
     $role = htmlspecialchars($_POST['role']);
+    
+    // Use original email from database, ignore submitted email
+    $email = $user['email'];
+    
+    // Initialize an array to track changes
+    $changes = [];
+    
+    // Check each field for changes (excluding email)
+    if ($user['first_name'] !== $first_name) {
+        $changes[] = "First name changed from '{$user['first_name']}' to '$first_name'";
+    }
+    if ($user['last_name'] !== $last_name) {
+        $changes[] = "Last name changed from '{$user['last_name']}' to '$last_name'";
+    }
+    if ($user['role'] !== $role) {
+        $changes[] = "Role changed from '{$user['role']}' to '$role'";
+    }
 
     try {
-        $stmt = $conn->prepare("UPDATE users SET first_name = :first_name, last_name = :last_name, email = :email, role = :role WHERE id = :id");
-        $stmt->bindParam(':first_name', $first_name);
-        $stmt->bindParam(':last_name', $last_name);
-        $stmt->bindParam(':email', $email);
-        $stmt->bindParam(':role', $role);
-        $stmt->bindParam(':id', $user_id);
-
-        if ($stmt->execute()) {
+        // Only update if there are changes
+        if (!empty($changes)) {
+            $conn->beginTransaction();
+            
+            // Update user (excluding email from the update)
+            $stmt = $conn->prepare("UPDATE users SET first_name = :first_name, last_name = :last_name, role = :role WHERE id = :id");
+            $stmt->bindParam(':first_name', $first_name);
+            $stmt->bindParam(':last_name', $last_name);
+            $stmt->bindParam(':role', $role);
+            $stmt->bindParam(':id', $user_id);
+            $stmt->execute();
+            
+            // Get admin's full name
+            $admin_stmt = $conn->prepare("SELECT first_name, last_name FROM users WHERE id = :admin_id");
+            $admin_stmt->bindParam(':admin_id', $_SESSION['user_id']);
+            $admin_stmt->execute();
+            $admin = $admin_stmt->fetch(PDO::FETCH_ASSOC);
+            $admin_name = $admin['first_name'] . ' ' . $admin['last_name'];
+            
+            // Get user's full name (using updated values)
+            $user_name = $first_name . ' ' . $last_name;
+            
+            // Format the action log
+            $action = "$admin_name Updated $user_name: " . implode(', ', $changes);
+            
+            $log_stmt = $conn->prepare("INSERT INTO admin_activity_logs (admin_id, action, user_affected_id) VALUES (:admin_id, :action, :user_affected_id)");
+            $log_stmt->bindParam(':admin_id', $_SESSION['user_id']);
+            $log_stmt->bindParam(':action', $action);
+            $log_stmt->bindParam(':user_affected_id', $user_id);
+            $log_stmt->execute();
+            
+            $conn->commit();
+            
             echo "<script>alert('User updated successfully!'); window.location.href='manage_users.php';</script>";
         } else {
-            echo "<script>alert('Failed to update user. Please try again.');</script>";
+            echo "<script>alert('No changes detected.');</script>";
         }
     } catch (PDOException $e) {
+        $conn->rollBack();
         echo "<script>alert('Error: " . $e->getMessage() . "');</script>";
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -79,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <div class="input-field">
                         <label for="email">Email:</label>
-                        <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($user['email']); ?>" required>
+                        <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($user['email']); ?>" readonly disabled>
                     </div>
                     <div class="input-field">
                         <label for="role">Role:</label>
