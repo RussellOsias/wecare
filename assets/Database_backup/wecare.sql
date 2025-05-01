@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 01, 2025 at 08:38 AM
+-- Generation Time: May 01, 2025 at 10:08 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -20,6 +20,8 @@ SET time_zone = "+00:00";
 --
 -- Database: `wecare`
 --
+CREATE DATABASE IF NOT EXISTS `wecare` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `wecare`;
 
 -- --------------------------------------------------------
 
@@ -30,6 +32,7 @@ SET time_zone = "+00:00";
 CREATE TABLE `admin_activity_logs` (
   `id` int(11) NOT NULL,
   `admin_id` int(11) NOT NULL,
+  `activity_type` varchar(50) NOT NULL,
   `action` varchar(255) NOT NULL,
   `user_affected_id` int(11) DEFAULT NULL,
   `timestamp` datetime NOT NULL DEFAULT current_timestamp()
@@ -39,10 +42,8 @@ CREATE TABLE `admin_activity_logs` (
 -- Dumping data for table `admin_activity_logs`
 --
 
-INSERT INTO `admin_activity_logs` (`id`, `admin_id`, `action`, `user_affected_id`, `timestamp`) VALUES
-(5, 21, 'Mark John Jopia Updated Mark John Jopia: Role changed from \'admin\' to \'resident\'', 36, '2025-05-01 14:33:47'),
-(6, 21, 'Mark John Jopia Updated Jopia Mark John: First name changed from \'Mark John\' to \'Jopia\', Last name changed from \'Jopia\' to \'Mark John\', Email changed from \'cocnambawan@gmail.com\' to \'asdasdada@gmail.com\', Role changed from \'resident\' to \'admin\'', 36, '2025-05-01 14:34:55'),
-(7, 21, 'Mark John Jopia Updated Mark John Jopia: First name changed from \'Jopia\' to \'Mark John\', Last name changed from \'Mark John\' to \'Jopia\', Email changed from \'asdasdada@gmail.com\' to \'cocnambawan@gmail.com\'', 36, '2025-05-01 14:36:32');
+INSERT INTO `admin_activity_logs` (`id`, `admin_id`, `activity_type`, `action`, `user_affected_id`, `timestamp`) VALUES
+(2, 21, 'Complaint Priority', 'Changed complaint #8 priority from medium to low', 33, '2025-05-01 16:06:43');
 
 -- --------------------------------------------------------
 
@@ -66,7 +67,8 @@ INSERT INTO `admin_logs` (`id`, `user_id`, `email`, `login_time`, `logout_time`)
 (1, 21, 'markjohnjopia1@gmail.com', '2025-05-01 07:32:04', '2025-05-01 13:35:35'),
 (2, 36, 'cocnambawan@gmail.com', '2025-05-01 07:36:43', '2025-05-01 13:39:48'),
 (3, 21, 'markjohnjopia1@gmail.com', '2025-05-01 07:40:28', '2025-05-01 13:59:20'),
-(4, 21, 'markjohnjopia1@gmail.com', '2025-05-01 08:14:37', NULL);
+(4, 21, 'markjohnjopia1@gmail.com', '2025-05-01 08:14:37', '2025-05-01 15:08:39'),
+(5, 21, 'markjohnjopia1@gmail.com', '2025-05-01 09:10:33', NULL);
 
 -- --------------------------------------------------------
 
@@ -96,8 +98,8 @@ CREATE TABLE `complaints` (
 
 INSERT INTO `complaints` (`id`, `resident_id`, `title`, `description`, `status`, `priority`, `assigned_officer_id`, `created_at`, `updated_at`, `assigned_personnel`, `resolution_notes`, `resolved_by`, `resolved_at`) VALUES
 (1, 19, 'Garbage Collection Issue', 'There is no garbage collection in our area for the past week. Please address this issue urgently.', 'in_progress', 'medium', 20, '2025-04-26 08:31:46', '2025-04-26 09:03:10', NULL, NULL, NULL, NULL),
-(4, 19, 'Water Supply Issue', 'Resident reported a disruption in the water supply in the area.', 'in_progress', 'high', 20, '2025-04-26 16:33:43', '2025-04-28 14:59:51', NULL, NULL, NULL, NULL),
-(8, 33, 'Hhh', 'gggg', 'in_progress', 'low', 20, '2025-04-29 20:20:00', '2025-04-29 20:39:45', NULL, NULL, NULL, NULL);
+(4, 19, 'Water Supply Issue', 'Resident reported a disruption in the water supply in the area.', 'in_progress', 'medium', 20, '2025-04-26 16:33:43', '2025-05-01 07:54:08', NULL, NULL, NULL, NULL),
+(8, 33, 'Hhh', 'gggg', 'in_progress', 'low', 20, '2025-04-29 20:20:00', '2025-05-01 08:06:43', NULL, NULL, NULL, NULL);
 
 --
 -- Triggers `complaints`
@@ -256,11 +258,11 @@ INSERT INTO `users` (`id`, `first_name`, `middle_name`, `last_name`, `email`, `p
 (18, 'Russell', 'B', 'Osias', 'osiasrussell@gmail.com', '$2y$10$h.nLmVH7Zc3LU3pOJt4fZetJ0LTIwcekyV5dj6G2gdLDPGRLIFIT.', 2147483647, 'Gensan', NULL, NULL, NULL, NULL, 'admin', 'assets/images/profiles/680c93a82c10c_download (2).jpg'),
 (19, 'Sample resident', 'sample', 'sample', 'sampleresident@gmail.com', '$2y$10$NAXDkEReF850pdDUXT5ZG.GRFBk3oAue2gnsgj0gWwxqlb8qvltzG', 14523412, '12312312', NULL, NULL, NULL, NULL, 'resident', NULL),
 (20, 'SAMPLE OFFICERS', 'ASDA', 'ASDADAS', 'officer@gmail.com', '$2y$10$iCuQxcFWofJezsH9cIvOjOMuCsx.vxTeTBaEWfo1B1MgIOsSFqNbK', 12312312, '1241241', NULL, NULL, NULL, NULL, 'officer', NULL),
-(21, 'Mark John', 'Rama', 'Jopia', 'markjohnjopia1@gmail.com', '$2y$10$TwL8AJoDiOJgYsJCwJe.hObBJaWADapFff5yoZlGzNm8HPiJd2S7K', 2147483647, 'Brgy. Sinawal', '4a2fcf78e558741591e01ab9587e4219a7a42ba989f88509ed551f7acdab4112', '2025-05-02 08:14:37', NULL, NULL, 'admin', NULL),
+(21, 'Mark John', 'Rama', 'Jopia', 'markjohnjopia1@gmail.com', '$2y$10$TwL8AJoDiOJgYsJCwJe.hObBJaWADapFff5yoZlGzNm8HPiJd2S7K', 2147483647, 'Brgy. Sinawal GSC', 'ae398eb76846d44fd29cc1201d88f2788009fb701c57eccb5eb827f2cb094036', '2025-05-02 09:10:33', NULL, NULL, 'admin', 'assets/images/profiles/6813241e477d8.png'),
 (33, 'Sample', '', 'Resident', 'resident@gmail.com', '$2y$10$AnBZBRuzkudzE/uskxEyWe1WmVorOpMaXk1D7pEIrA6Wp/7VMtbgu', 2147483647, 'Sample Adress', NULL, NULL, NULL, NULL, 'resident', NULL),
 (34, 'Mark John', '', 'Jopia', 'resident1@gmail.com', '$2y$10$snmCm8krOnBBidOylmdyVu1ogJOlodkj9vJ5It/yd3QZ1iQiNSjO6', 2147483647, 'sinawal', NULL, NULL, NULL, NULL, 'resident', NULL),
 (35, 'Mark John', '', 'Jopia', 'resident2@gmail.com', '$2y$10$k1L9Q3mIyYOSTHTNa28Vr.rxu7Krym/cJdNK7Hx6oYU9SEcrnvy3K', 2147483647, 'sinawal', NULL, NULL, NULL, NULL, 'resident', NULL),
-(36, 'Mark John', 'Rama', 'Jopia', 'cocnambawan@gmail.com', '$2y$10$.fSwhVCUx.Dc.ICEIhGUAOQ3Em6GAcWFwj3mNOScb1/AyfmkyIEmm', 2147483647, 'Brgy. Sinawal', NULL, NULL, NULL, NULL, 'admin', NULL);
+(37, 'Mark John', 'Rama', 'Jopia', 'cocnambawan@gmail.com', '$2y$10$lRtlaVUK.GMuj9MIVUj75uCPWw.qWMxQkeMut1y1YjaEBZLHzWZ.K', 2147483647, 'Brgy. Sinawal', NULL, NULL, NULL, NULL, 'admin', NULL);
 
 --
 -- Indexes for dumped tables
@@ -272,6 +274,7 @@ INSERT INTO `users` (`id`, `first_name`, `middle_name`, `last_name`, `email`, `p
 ALTER TABLE `admin_activity_logs`
   ADD PRIMARY KEY (`id`),
   ADD KEY `admin_id` (`admin_id`),
+  ADD KEY `activity_type` (`activity_type`),
   ADD KEY `user_affected_id` (`user_affected_id`);
 
 --
@@ -300,13 +303,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `admin_activity_logs`
 --
 ALTER TABLE `admin_activity_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `admin_logs`
 --
 ALTER TABLE `admin_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `complaints`
@@ -318,18 +321,7 @@ ALTER TABLE `complaints`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
-
---
--- Constraints for dumped tables
---
-
---
--- Constraints for table `admin_activity_logs`
---
-ALTER TABLE `admin_activity_logs`
-  ADD CONSTRAINT `admin_activity_logs_ibfk_1` FOREIGN KEY (`admin_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `admin_activity_logs_ibfk_2` FOREIGN KEY (`user_affected_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

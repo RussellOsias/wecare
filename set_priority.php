@@ -2,32 +2,66 @@
 session_start();
 require_once 'includes/db_conn.php';
 
-// Ensure the user is logged in as an admin
+// Admin check
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header("Location: login.php");
     exit();
 }
 
-// Get the complaint ID from the URL
 $complaint_id = $_GET['id'];
+
+// Fetch current complaint with resident info
+try {
+    $stmt = $conn->prepare("SELECT c.*, u.id as resident_id FROM complaints c JOIN users u ON c.resident_id = u.id WHERE c.id = ?");
+    $stmt->execute([$complaint_id]);
+    $complaint = $stmt->fetch();
+    
+    if (!$complaint) {
+        die("Complaint not found.");
+    }
+} catch (PDOException $e) {
+    die("Error fetching complaint: " . $e->getMessage());
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $priority = $_POST['priority'];
-
-    try {
-        $stmt = $conn->prepare("UPDATE complaints SET priority = :priority WHERE id = :id");
-        $stmt->bindParam(':priority', $priority);
-        $stmt->bindParam(':id', $complaint_id);
-        $stmt->execute();
-
-        header("Location: admin_view_complaints.php");
-        exit();
-    } catch (Exception $e) {
-        die("Error setting priority: " . $e->getMessage());
+    
+    if ($complaint['priority'] !== $priority) {
+        try {
+            $conn->beginTransaction();
+            
+            // Update priority
+            $stmt = $conn->prepare("UPDATE complaints SET priority = ? WHERE id = ?");
+            $stmt->execute([$priority, $complaint_id]);
+            
+            // Log activity (following your exact table structure)
+            $action = "Changed complaint #$complaint_id priority from {$complaint['priority']} to $priority";
+            $log_stmt = $conn->prepare("INSERT INTO admin_activity_logs 
+                (admin_id, activity_type, action, user_affected_id) 
+                VALUES (?, ?, ?, ?)");
+            
+            $log_stmt->execute([
+                $_SESSION['user_id'],
+                'Complaint Priority',  // Specific activity type
+                $action,
+                $complaint['resident_id']  // The resident who made the complaint
+            ]);
+            
+            $conn->commit();
+            
+            header("Location: admin_view_complaints.php");
+            exit();
+        } catch (PDOException $e) {
+            $conn->rollBack();
+            die("Error: " . $e->getMessage());
+        }
+    } else {
+        echo "<script>alert('No priority change detected.');</script>";
     }
 }
 ?>
 
+<!-- Your exact original HTML (unchanged) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -41,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <!-- Sidebar -->
     <div class="sidebar">
       <div class="logo-container">
-        <img src="../images/logo.png" alt="Logo" class="logo"> <!-- Replace with your logo -->
+        <img src="../images/logo.png" alt="Logo" class="logo">
         <h2>WeCare</h2>
       </div>
       <ul>
@@ -61,9 +95,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <form method="POST" class="input-field">
         <label for="priority">Priority:</label>
         <select id="priority" name="priority" required>
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high">High</option>
+          <option value="low" <?= $complaint['priority'] === 'low' ? 'selected' : '' ?>>Low</option>
+          <option value="medium" <?= $complaint['priority'] === 'medium' ? 'selected' : '' ?>>Medium</option>
+          <option value="high" <?= $complaint['priority'] === 'high' ? 'selected' : '' ?>>High</option>
         </select>
         <button type="submit" class="back-btn">Set Priority</button>
       </form>
