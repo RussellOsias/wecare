@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 VALUES (:admin_id, :activity_type, :action, :user_affected_id)");
             
             $log_stmt->bindParam(':admin_id', $_SESSION['user_id']);
-            $log_stmt->bindValue(':activity_type', 'User Update'); // Specific activity type
+            $log_stmt->bindValue(':activity_type', 'user_update'); // Specific activity type
             $log_stmt->bindParam(':action', $action);
             $log_stmt->bindParam(':user_affected_id', $user_id);
             $log_stmt->execute();

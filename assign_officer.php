@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         $log_stmt->execute([
             $_SESSION['user_id'],
-            'Complaint Assignment',  // Specific activity type
+            'complaint_assignment',  // Specific activity type
             $action,
             $complaint['resident_id']  // The resident who made the complaint
         ]);

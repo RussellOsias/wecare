@@ -116,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             $log_stmt->execute([
                 ':admin_id' => $user_id,
-                ':activity_type' => 'Profile Update',  // Specific activity type
+                ':activity_type' => 'profile_update',  // Specific activity type
                 ':action' => $action,
                 ':user_affected_id' => $user_id
             ]);

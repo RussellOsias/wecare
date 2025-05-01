@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                   (admin_id, activity_type, action, user_affected_id) 
                                   VALUES (:admin_id, :activity_type, :action, :user_affected_id)");
         $log_stmt->bindParam(':admin_id', $_SESSION['user_id']);
-        $log_stmt->bindValue(':activity_type', 'User Creation');
+        $log_stmt->bindValue(':activity_type', 'user_creation');
         $log_stmt->bindParam(':action', $action);
         $log_stmt->bindParam(':user_affected_id', $new_user_id);
         $log_stmt->execute();
