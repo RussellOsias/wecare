@@ -34,8 +34,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt = $conn->prepare("UPDATE complaints SET priority = ? WHERE id = ?");
             $stmt->execute([$priority, $complaint_id]);
             
-            // Log activity (following your exact table structure)
-            $action = "Changed complaint #$complaint_id priority from {$complaint['priority']} to $priority";
+            // Get admin's details who made the change
+            $admin_stmt = $conn->prepare("SELECT first_name, last_name FROM users WHERE id = ?");
+            $admin_stmt->execute([$_SESSION['user_id']]);
+            $admin = $admin_stmt->fetch();
+            $admin_name = $admin['first_name'] . ' ' . $admin['last_name'];
+            
+            // Log activity with admin name
+            $action = "$admin_name changed priority from {$complaint['priority']} to $priority for complaint #$complaint_id";
+            
             $log_stmt = $conn->prepare("INSERT INTO admin_activity_logs 
                 (admin_id, activity_type, action, user_affected_id) 
                 VALUES (?, ?, ?, ?)");

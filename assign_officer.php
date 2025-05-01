@@ -50,8 +50,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $officer = $officer_stmt->fetch(PDO::FETCH_ASSOC);
         $officer_name = $officer['first_name'] . ' ' . $officer['last_name'];
         
-        // Log activity
-        $action = "Assigned officer $officer_name to complaint #$complaint_id";
+        // Get admin's details who made the assignment
+        $admin_stmt = $conn->prepare("SELECT first_name, last_name FROM users WHERE id = ?");
+        $admin_stmt->execute([$_SESSION['user_id']]);
+        $admin = $admin_stmt->fetch(PDO::FETCH_ASSOC);
+        $admin_name = $admin['first_name'] . ' ' . $admin['last_name'];
+        
+        // Log activity with admin name
+        $action = "$admin_name assigned officer $officer_name to complaint #$complaint_id";
+        
         $log_stmt = $conn->prepare("INSERT INTO admin_activity_logs 
             (admin_id, activity_type, action, user_affected_id) 
             VALUES (?, ?, ?, ?)");
