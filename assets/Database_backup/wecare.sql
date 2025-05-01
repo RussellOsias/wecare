@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 08, 2025 at 09:19 AM
+-- Generation Time: May 01, 2025 at 08:38 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -20,8 +20,29 @@ SET time_zone = "+00:00";
 --
 -- Database: `wecare`
 --
-CREATE DATABASE IF NOT EXISTS `wecare` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-USE `wecare`;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `admin_activity_logs`
+--
+
+CREATE TABLE `admin_activity_logs` (
+  `id` int(11) NOT NULL,
+  `admin_id` int(11) NOT NULL,
+  `action` varchar(255) NOT NULL,
+  `user_affected_id` int(11) DEFAULT NULL,
+  `timestamp` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `admin_activity_logs`
+--
+
+INSERT INTO `admin_activity_logs` (`id`, `admin_id`, `action`, `user_affected_id`, `timestamp`) VALUES
+(5, 21, 'Mark John Jopia Updated Mark John Jopia: Role changed from \'admin\' to \'resident\'', 36, '2025-05-01 14:33:47'),
+(6, 21, 'Mark John Jopia Updated Jopia Mark John: First name changed from \'Mark John\' to \'Jopia\', Last name changed from \'Jopia\' to \'Mark John\', Email changed from \'cocnambawan@gmail.com\' to \'asdasdada@gmail.com\', Role changed from \'resident\' to \'admin\'', 36, '2025-05-01 14:34:55'),
+(7, 21, 'Mark John Jopia Updated Mark John Jopia: First name changed from \'Jopia\' to \'Mark John\', Last name changed from \'Mark John\' to \'Jopia\', Email changed from \'asdasdada@gmail.com\' to \'cocnambawan@gmail.com\'', 36, '2025-05-01 14:36:32');
 
 -- --------------------------------------------------------
 
@@ -42,7 +63,116 @@ CREATE TABLE `admin_logs` (
 --
 
 INSERT INTO `admin_logs` (`id`, `user_id`, `email`, `login_time`, `logout_time`) VALUES
-(18, 7, 'markjohnjopia1@gmail.com', '2025-03-08 09:15:39', NULL);
+(1, 21, 'markjohnjopia1@gmail.com', '2025-05-01 07:32:04', '2025-05-01 13:35:35'),
+(2, 36, 'cocnambawan@gmail.com', '2025-05-01 07:36:43', '2025-05-01 13:39:48'),
+(3, 21, 'markjohnjopia1@gmail.com', '2025-05-01 07:40:28', '2025-05-01 13:59:20'),
+(4, 21, 'markjohnjopia1@gmail.com', '2025-05-01 08:14:37', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `complaints`
+--
+
+CREATE TABLE `complaints` (
+  `id` int(11) NOT NULL,
+  `resident_id` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `description` text NOT NULL,
+  `status` enum('pending','in_progress','resolved') DEFAULT 'pending',
+  `priority` enum('low','medium','high') DEFAULT NULL,
+  `assigned_officer_id` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
+  `assigned_personnel` varchar(255) DEFAULT NULL,
+  `resolution_notes` text DEFAULT NULL,
+  `resolved_by` int(11) DEFAULT NULL,
+  `resolved_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `complaints`
+--
+
+INSERT INTO `complaints` (`id`, `resident_id`, `title`, `description`, `status`, `priority`, `assigned_officer_id`, `created_at`, `updated_at`, `assigned_personnel`, `resolution_notes`, `resolved_by`, `resolved_at`) VALUES
+(1, 19, 'Garbage Collection Issue', 'There is no garbage collection in our area for the past week. Please address this issue urgently.', 'in_progress', 'medium', 20, '2025-04-26 08:31:46', '2025-04-26 09:03:10', NULL, NULL, NULL, NULL),
+(4, 19, 'Water Supply Issue', 'Resident reported a disruption in the water supply in the area.', 'in_progress', 'high', 20, '2025-04-26 16:33:43', '2025-04-28 14:59:51', NULL, NULL, NULL, NULL),
+(8, 33, 'Hhh', 'gggg', 'in_progress', 'low', 20, '2025-04-29 20:20:00', '2025-04-29 20:39:45', NULL, NULL, NULL, NULL);
+
+--
+-- Triggers `complaints`
+--
+DELIMITER $$
+CREATE TRIGGER `after_complaint_assignment` AFTER UPDATE ON `complaints` FOR EACH ROW BEGIN
+    -- Check if the `assigned_officer_id` is updated and not NULL
+    IF NEW.assigned_officer_id IS NOT NULL AND NEW.assigned_officer_id <> OLD.assigned_officer_id THEN
+        -- Insert the assignment into the `officers_assigned` table
+        INSERT INTO officers_assigned (complaint_id, officer_id, assigned_at)
+        VALUES (NEW.id, NEW.assigned_officer_id, NOW());
+    END IF;
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `after_complaint_creation` AFTER INSERT ON `complaints` FOR EACH ROW BEGIN
+    -- Check if the complaint is created with an assigned officer
+    IF NEW.assigned_officer_id IS NOT NULL THEN
+        -- Insert the assignment into the `officers_assigned` table
+        INSERT INTO officers_assigned (complaint_id, officer_id, assigned_at)
+        VALUES (NEW.id, NEW.assigned_officer_id, NOW());
+    END IF;
+END
+$$
+DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `complaint_resolutions`
+--
+
+CREATE TABLE `complaint_resolutions` (
+  `id` int(11) NOT NULL,
+  `complaint_id` int(11) NOT NULL,
+  `resolved_by` int(11) NOT NULL,
+  `resolution_notes` text NOT NULL,
+  `personnel_involved` text DEFAULT NULL,
+  `resolved_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `history_complaints`
+--
+
+CREATE TABLE `history_complaints` (
+  `id` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `status` enum('pending','in_progress','resolved') NOT NULL,
+  `created_at` datetime NOT NULL,
+  `description` text NOT NULL,
+  `priority` enum('low','medium','high') DEFAULT NULL,
+  `resident_id` int(11) NOT NULL,
+  `assigned_officer_id` int(11) NOT NULL,
+  `assigned_personnel` varchar(255) DEFAULT NULL,
+  `resolution_notes` text DEFAULT NULL,
+  `resolved_by` int(11) NOT NULL,
+  `resolved_at` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `history_complaints`
+--
+
+INSERT INTO `history_complaints` (`id`, `title`, `status`, `created_at`, `description`, `priority`, `resident_id`, `assigned_officer_id`, `assigned_personnel`, `resolution_notes`, `resolved_by`, `resolved_at`) VALUES
+(7, 'Street Light Not Working', 'resolved', '2025-04-27 15:48:23', 'The street light near Block B has not been functioning for the last 3 days.', 'high', 19, 20, 'nigger', '', 20, '2025-04-28 12:22:11'),
+(8, 'Garbage Collection Delay', 'resolved', '2025-04-27 15:48:23', 'The garbage collection in our neighborhood has been delayed for more than a week, causing an accumulation of waste.', 'medium', 19, 20, 'sds', '', 20, '2025-04-28 12:46:27'),
+(9, 'Water Supply Disruption', 'resolved', '2025-04-27 23:38:24', 'There is no water supply in our area for the past two days. Please address this issue urgently.', 'high', 21, 20, 'sds', '', 20, '2025-04-28 12:21:54'),
+(10, 'Noise Complaint', 'resolved', '2025-04-28 22:32:03', 'There is excessive noise in the neighborhood from late-night parties. Please address this issue urgently.', 'high', 21, 20, 'Russell Osias', '', 20, '2025-04-28 14:32:55'),
+(11, 'Mga adik check', 'resolved', '2025-04-28 22:57:21', 'Daghan adik yawa sigeg foil method.', 'high', 21, 20, 'Russell Osias\nMark John Jopia', '', 20, '2025-04-28 15:04:52'),
+(0, '2 Am Videoke', 'resolved', '2025-04-30 03:04:19', 'umay sa 2 am videoke ataya', 'low', 1, 20, 'goku', '', 20, '2025-04-29 19:49:13'),
+(5, 'Ddd', 'resolved', '2025-04-30 03:54:16', 'dddd', 'low', 33, 20, 'janjan', '', 20, '2025-04-29 19:56:05');
 
 -- --------------------------------------------------------
 
@@ -63,11 +193,46 @@ CREATE TABLE `messages` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `notifications`
+--
+
+CREATE TABLE `notifications` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `message` text NOT NULL,
+  `is_read` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `officers_assigned`
+--
+
+CREATE TABLE `officers_assigned` (
+  `id` int(11) NOT NULL,
+  `complaint_id` int(11) NOT NULL,
+  `officer_id` int(11) NOT NULL,
+  `assigned_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `officers_assigned`
+--
+
+INSERT INTO `officers_assigned` (`id`, `complaint_id`, `officer_id`, `assigned_at`) VALUES
+(1, 1, 20, '2025-04-26 08:31:46'),
+(2, 4, 20, '2025-04-26 16:33:43');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `users`
 --
 
 CREATE TABLE `users` (
-  `id` int(200) NOT NULL,
+  `id` int(11) NOT NULL,
   `first_name` varchar(200) NOT NULL,
   `middle_name` varchar(200) NOT NULL,
   `last_name` varchar(200) NOT NULL,
@@ -88,26 +253,38 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `first_name`, `middle_name`, `last_name`, `email`, `password`, `phone_number`, `address`, `session_token`, `token_expiry`, `reset_token`, `reset_token_expiry`, `role`, `profile_picture`) VALUES
-(7, 'Admin', 'Admin', 'Admin', 'markjohnjopia1@gmail.com', '$2y$10$z19ZVmVj87vJb7xorHPdNOhkw18aPP1rIQPii1qJmsAT/Fu0XqKOC', 2147483647, 'Brgy. Sinawal', '3e35ec1eed5462800e1b821376ae4aa92645080a437ccb8c0ac4f02605d50554', '2025-03-09 09:15:39', NULL, NULL, 'admin', 'assets/images/profiles/67c9bdce140fd_Screenshot 2024-09-18 172413.png');
+(18, 'Russell', 'B', 'Osias', 'osiasrussell@gmail.com', '$2y$10$h.nLmVH7Zc3LU3pOJt4fZetJ0LTIwcekyV5dj6G2gdLDPGRLIFIT.', 2147483647, 'Gensan', NULL, NULL, NULL, NULL, 'admin', 'assets/images/profiles/680c93a82c10c_download (2).jpg'),
+(19, 'Sample resident', 'sample', 'sample', 'sampleresident@gmail.com', '$2y$10$NAXDkEReF850pdDUXT5ZG.GRFBk3oAue2gnsgj0gWwxqlb8qvltzG', 14523412, '12312312', NULL, NULL, NULL, NULL, 'resident', NULL),
+(20, 'SAMPLE OFFICERS', 'ASDA', 'ASDADAS', 'officer@gmail.com', '$2y$10$iCuQxcFWofJezsH9cIvOjOMuCsx.vxTeTBaEWfo1B1MgIOsSFqNbK', 12312312, '1241241', NULL, NULL, NULL, NULL, 'officer', NULL),
+(21, 'Mark John', 'Rama', 'Jopia', 'markjohnjopia1@gmail.com', '$2y$10$TwL8AJoDiOJgYsJCwJe.hObBJaWADapFff5yoZlGzNm8HPiJd2S7K', 2147483647, 'Brgy. Sinawal', '4a2fcf78e558741591e01ab9587e4219a7a42ba989f88509ed551f7acdab4112', '2025-05-02 08:14:37', NULL, NULL, 'admin', NULL),
+(33, 'Sample', '', 'Resident', 'resident@gmail.com', '$2y$10$AnBZBRuzkudzE/uskxEyWe1WmVorOpMaXk1D7pEIrA6Wp/7VMtbgu', 2147483647, 'Sample Adress', NULL, NULL, NULL, NULL, 'resident', NULL),
+(34, 'Mark John', '', 'Jopia', 'resident1@gmail.com', '$2y$10$snmCm8krOnBBidOylmdyVu1ogJOlodkj9vJ5It/yd3QZ1iQiNSjO6', 2147483647, 'sinawal', NULL, NULL, NULL, NULL, 'resident', NULL),
+(35, 'Mark John', '', 'Jopia', 'resident2@gmail.com', '$2y$10$k1L9Q3mIyYOSTHTNa28Vr.rxu7Krym/cJdNK7Hx6oYU9SEcrnvy3K', 2147483647, 'sinawal', NULL, NULL, NULL, NULL, 'resident', NULL),
+(36, 'Mark John', 'Rama', 'Jopia', 'cocnambawan@gmail.com', '$2y$10$.fSwhVCUx.Dc.ICEIhGUAOQ3Em6GAcWFwj3mNOScb1/AyfmkyIEmm', 2147483647, 'Brgy. Sinawal', NULL, NULL, NULL, NULL, 'admin', NULL);
 
 --
 -- Indexes for dumped tables
 --
 
 --
+-- Indexes for table `admin_activity_logs`
+--
+ALTER TABLE `admin_activity_logs`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `admin_id` (`admin_id`),
+  ADD KEY `user_affected_id` (`user_affected_id`);
+
+--
 -- Indexes for table `admin_logs`
 --
 ALTER TABLE `admin_logs`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`);
+  ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `messages`
+-- Indexes for table `complaints`
 --
-ALTER TABLE `messages`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `sender_id` (`sender_id`),
-  ADD KEY `receiver_id` (`receiver_id`);
+ALTER TABLE `complaints`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `users`
@@ -120,39 +297,39 @@ ALTER TABLE `users`
 --
 
 --
+-- AUTO_INCREMENT for table `admin_activity_logs`
+--
+ALTER TABLE `admin_activity_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
 -- AUTO_INCREMENT for table `admin_logs`
 --
 ALTER TABLE `admin_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
--- AUTO_INCREMENT for table `messages`
+-- AUTO_INCREMENT for table `complaints`
 --
-ALTER TABLE `messages`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+ALTER TABLE `complaints`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(200) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
 
 --
 -- Constraints for dumped tables
 --
 
 --
--- Constraints for table `admin_logs`
+-- Constraints for table `admin_activity_logs`
 --
-ALTER TABLE `admin_logs`
-  ADD CONSTRAINT `admin_logs_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
-
---
--- Constraints for table `messages`
---
-ALTER TABLE `messages`
-  ADD CONSTRAINT `messages_ibfk_1` FOREIGN KEY (`sender_id`) REFERENCES `users` (`id`),
-  ADD CONSTRAINT `messages_ibfk_2` FOREIGN KEY (`receiver_id`) REFERENCES `users` (`id`);
+ALTER TABLE `admin_activity_logs`
+  ADD CONSTRAINT `admin_activity_logs_ibfk_1` FOREIGN KEY (`admin_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `admin_activity_logs_ibfk_2` FOREIGN KEY (`user_affected_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
