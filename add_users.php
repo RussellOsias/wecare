@@ -14,13 +14,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $middle_name = htmlspecialchars($_POST['middle_name']);
     $last_name = htmlspecialchars($_POST['last_name']);
     $email = htmlspecialchars($_POST['email']);
-    $password = password_hash($_POST['password'], PASSWORD_BCRYPT); // Hash the password
+    $password = password_hash($_POST['password'], PASSWORD_BCRYPT);
     $phone_number = intval($_POST['phone_number']);
     $address = htmlspecialchars($_POST['address']);
     $role = htmlspecialchars($_POST['role']);
 
     try {
-        $stmt = $conn->prepare("INSERT INTO users (first_name, middle_name, last_name, email, password, phone_number, address, role) VALUES (:first_name, :middle_name, :last_name, :email, :password, :phone_number, :address, :role)");
+        $conn->beginTransaction();
+        
+        // Insert new user
+        $stmt = $conn->prepare("INSERT INTO users (first_name, middle_name, last_name, email, password, phone_number, address, role) 
+                              VALUES (:first_name, :middle_name, :last_name, :email, :password, :phone_number, :address, :role)");
         $stmt->bindParam(':first_name', $first_name);
         $stmt->bindParam(':middle_name', $middle_name);
         $stmt->bindParam(':last_name', $last_name);
@@ -29,17 +33,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindParam(':phone_number', $phone_number);
         $stmt->bindParam(':address', $address);
         $stmt->bindParam(':role', $role);
-
-        if ($stmt->execute()) {
-            echo "<script>alert('User added successfully!'); window.location.href='manage_users.php';</script>";
-        } else {
-            echo "<script>alert('Failed to add user. Please try again.');</script>";
-        }
+        $stmt->execute();
+        
+        // Get the ID of the newly created user
+        $new_user_id = $conn->lastInsertId();
+        
+        // Get admin's details
+        $admin_stmt = $conn->prepare("SELECT first_name, last_name FROM users WHERE id = :admin_id");
+        $admin_stmt->bindParam(':admin_id', $_SESSION['user_id']);
+        $admin_stmt->execute();
+        $admin = $admin_stmt->fetch(PDO::FETCH_ASSOC);
+        $admin_name = $admin['first_name'] . ' ' . $admin['last_name'];
+        
+        // Prepare detailed log message
+        $action = "$admin_name created new $role: $first_name $last_name ($email)";
+        
+        // Log to admin_activity_logs
+        $log_stmt = $conn->prepare("INSERT INTO admin_activity_logs 
+                                  (admin_id, activity_type, action, user_affected_id) 
+                                  VALUES (:admin_id, :activity_type, :action, :user_affected_id)");
+        $log_stmt->bindParam(':admin_id', $_SESSION['user_id']);
+        $log_stmt->bindValue(':activity_type', 'User Creation');
+        $log_stmt->bindParam(':action', $action);
+        $log_stmt->bindParam(':user_affected_id', $new_user_id);
+        $log_stmt->execute();
+        
+        $conn->commit();
+        
+        echo "<script>alert('User added successfully!'); window.location.href='manage_users.php';</script>";
     } catch (PDOException $e) {
+        $conn->rollBack();
         echo "<script>alert('Error: " . $e->getMessage() . "');</script>";
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
