@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 01, 2025 at 10:08 AM
+-- Generation Time: May 02, 2025 at 06:19 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -43,7 +43,13 @@ CREATE TABLE `admin_activity_logs` (
 --
 
 INSERT INTO `admin_activity_logs` (`id`, `admin_id`, `activity_type`, `action`, `user_affected_id`, `timestamp`) VALUES
-(2, 21, 'Complaint Priority', 'Changed complaint #8 priority from medium to low', 33, '2025-05-01 16:06:43');
+(2, 21, 'Complaint Priority', 'Changed complaint #8 priority from medium to low', 33, '2025-05-01 16:06:43'),
+(3, 21, 'user_deletion', 'Mark John Jopia deleted admin account: Mark John Jopia (cocnambawan@gmail.com)', 37, '2025-05-02 11:23:55'),
+(4, 21, 'complaint_priority', 'Mark John Jopia changed priority from  to high for complaint #9', 33, '2025-05-02 11:44:59'),
+(5, 21, 'complaint_assignment', 'Mark John Jopia assigned officer SAMPLE OFFICERS ASDADAS to complaint #8', 33, '2025-05-02 11:45:20'),
+(6, 21, 'complaint_assignment', 'Mark John Jopia assigned officer SAMPLE OFFICERS ASDADAS to complaint #9', 33, '2025-05-02 11:46:01'),
+(7, 21, 'profile_update', 'Mark John Jopia updated their profile: Phone number changed from \'2147483647\' to \'09514810354\'', 21, '2025-05-02 12:15:09'),
+(8, 21, 'profile_update', 'Mark John Jopia updated their profile: Phone number changed from \'2147483647\' to \'09514810354\'', 21, '2025-05-02 12:17:04');
 
 -- --------------------------------------------------------
 
@@ -68,7 +74,8 @@ INSERT INTO `admin_logs` (`id`, `user_id`, `email`, `login_time`, `logout_time`)
 (2, 36, 'cocnambawan@gmail.com', '2025-05-01 07:36:43', '2025-05-01 13:39:48'),
 (3, 21, 'markjohnjopia1@gmail.com', '2025-05-01 07:40:28', '2025-05-01 13:59:20'),
 (4, 21, 'markjohnjopia1@gmail.com', '2025-05-01 08:14:37', '2025-05-01 15:08:39'),
-(5, 21, 'markjohnjopia1@gmail.com', '2025-05-01 09:10:33', NULL);
+(5, 21, 'markjohnjopia1@gmail.com', '2025-05-01 09:10:33', NULL),
+(6, 21, 'markjohnjopia1@gmail.com', '2025-05-02 05:22:16', NULL);
 
 -- --------------------------------------------------------
 
@@ -174,7 +181,8 @@ INSERT INTO `history_complaints` (`id`, `title`, `status`, `created_at`, `descri
 (10, 'Noise Complaint', 'resolved', '2025-04-28 22:32:03', 'There is excessive noise in the neighborhood from late-night parties. Please address this issue urgently.', 'high', 21, 20, 'Russell Osias', '', 20, '2025-04-28 14:32:55'),
 (11, 'Mga adik check', 'resolved', '2025-04-28 22:57:21', 'Daghan adik yawa sigeg foil method.', 'high', 21, 20, 'Russell Osias\nMark John Jopia', '', 20, '2025-04-28 15:04:52'),
 (0, '2 Am Videoke', 'resolved', '2025-04-30 03:04:19', 'umay sa 2 am videoke ataya', 'low', 1, 20, 'goku', '', 20, '2025-04-29 19:49:13'),
-(5, 'Ddd', 'resolved', '2025-04-30 03:54:16', 'dddd', 'low', 33, 20, 'janjan', '', 20, '2025-04-29 19:56:05');
+(5, 'Ddd', 'resolved', '2025-04-30 03:54:16', 'dddd', 'low', 33, 20, 'janjan', '', 20, '2025-04-29 19:56:05'),
+(9, 'Saba Kaayo Si Rafael', 'resolved', '2025-05-02 11:43:07', 'nag breakdown', 'high', 33, 20, 'John Lloyd Catayas', '', 20, '2025-05-02 03:46:59');
 
 -- --------------------------------------------------------
 
@@ -240,7 +248,7 @@ CREATE TABLE `users` (
   `last_name` varchar(200) NOT NULL,
   `email` varchar(200) NOT NULL,
   `password` varchar(200) NOT NULL,
-  `phone_number` int(200) NOT NULL,
+  `phone_number` varchar(200) NOT NULL,
   `address` varchar(200) NOT NULL,
   `session_token` varchar(255) DEFAULT NULL,
   `token_expiry` datetime DEFAULT NULL,
@@ -255,14 +263,13 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `first_name`, `middle_name`, `last_name`, `email`, `password`, `phone_number`, `address`, `session_token`, `token_expiry`, `reset_token`, `reset_token_expiry`, `role`, `profile_picture`) VALUES
-(18, 'Russell', 'B', 'Osias', 'osiasrussell@gmail.com', '$2y$10$h.nLmVH7Zc3LU3pOJt4fZetJ0LTIwcekyV5dj6G2gdLDPGRLIFIT.', 2147483647, 'Gensan', NULL, NULL, NULL, NULL, 'admin', 'assets/images/profiles/680c93a82c10c_download (2).jpg'),
-(19, 'Sample resident', 'sample', 'sample', 'sampleresident@gmail.com', '$2y$10$NAXDkEReF850pdDUXT5ZG.GRFBk3oAue2gnsgj0gWwxqlb8qvltzG', 14523412, '12312312', NULL, NULL, NULL, NULL, 'resident', NULL),
-(20, 'SAMPLE OFFICERS', 'ASDA', 'ASDADAS', 'officer@gmail.com', '$2y$10$iCuQxcFWofJezsH9cIvOjOMuCsx.vxTeTBaEWfo1B1MgIOsSFqNbK', 12312312, '1241241', NULL, NULL, NULL, NULL, 'officer', NULL),
-(21, 'Mark John', 'Rama', 'Jopia', 'markjohnjopia1@gmail.com', '$2y$10$TwL8AJoDiOJgYsJCwJe.hObBJaWADapFff5yoZlGzNm8HPiJd2S7K', 2147483647, 'Brgy. Sinawal GSC', 'ae398eb76846d44fd29cc1201d88f2788009fb701c57eccb5eb827f2cb094036', '2025-05-02 09:10:33', NULL, NULL, 'admin', 'assets/images/profiles/6813241e477d8.png'),
-(33, 'Sample', '', 'Resident', 'resident@gmail.com', '$2y$10$AnBZBRuzkudzE/uskxEyWe1WmVorOpMaXk1D7pEIrA6Wp/7VMtbgu', 2147483647, 'Sample Adress', NULL, NULL, NULL, NULL, 'resident', NULL),
-(34, 'Mark John', '', 'Jopia', 'resident1@gmail.com', '$2y$10$snmCm8krOnBBidOylmdyVu1ogJOlodkj9vJ5It/yd3QZ1iQiNSjO6', 2147483647, 'sinawal', NULL, NULL, NULL, NULL, 'resident', NULL),
-(35, 'Mark John', '', 'Jopia', 'resident2@gmail.com', '$2y$10$k1L9Q3mIyYOSTHTNa28Vr.rxu7Krym/cJdNK7Hx6oYU9SEcrnvy3K', 2147483647, 'sinawal', NULL, NULL, NULL, NULL, 'resident', NULL),
-(37, 'Mark John', 'Rama', 'Jopia', 'cocnambawan@gmail.com', '$2y$10$lRtlaVUK.GMuj9MIVUj75uCPWw.qWMxQkeMut1y1YjaEBZLHzWZ.K', 2147483647, 'Brgy. Sinawal', NULL, NULL, NULL, NULL, 'admin', NULL);
+(18, 'Russell', 'B', 'Osias', 'osiasrussell@gmail.com', '$2y$10$h.nLmVH7Zc3LU3pOJt4fZetJ0LTIwcekyV5dj6G2gdLDPGRLIFIT.', '2147483647', 'Gensan', NULL, NULL, NULL, NULL, 'admin', 'assets/images/profiles/680c93a82c10c_download (2).jpg'),
+(19, 'Sample resident', 'sample', 'sample', 'sampleresident@gmail.com', '$2y$10$NAXDkEReF850pdDUXT5ZG.GRFBk3oAue2gnsgj0gWwxqlb8qvltzG', '14523412', '12312312', NULL, NULL, NULL, NULL, 'resident', NULL),
+(20, 'SAMPLE OFFICERS', 'ASDA', 'ASDADAS', 'officer@gmail.com', '$2y$10$iCuQxcFWofJezsH9cIvOjOMuCsx.vxTeTBaEWfo1B1MgIOsSFqNbK', '12312312', '1241241', NULL, NULL, NULL, NULL, 'officer', NULL),
+(21, 'Mark John', 'Rama', 'Jopia', 'markjohnjopia1@gmail.com', '$2y$10$TwL8AJoDiOJgYsJCwJe.hObBJaWADapFff5yoZlGzNm8HPiJd2S7K', '09514810354', 'Brgy. Sinawal GSC', '15f8f58c1290a4f9eebcef78379e0ed24fd80e41327474c06d7abe6395ef9899', '2025-05-03 05:22:16', NULL, NULL, 'admin', 'assets/images/profiles/6813241e477d8.png'),
+(33, 'Sample', '', 'Resident', 'resident@gmail.com', '$2y$10$AnBZBRuzkudzE/uskxEyWe1WmVorOpMaXk1D7pEIrA6Wp/7VMtbgu', '2147483647', 'Sample Adress', NULL, NULL, NULL, NULL, 'resident', NULL),
+(34, 'Mark John', '', 'Jopia', 'resident1@gmail.com', '$2y$10$snmCm8krOnBBidOylmdyVu1ogJOlodkj9vJ5It/yd3QZ1iQiNSjO6', '2147483647', 'sinawal', NULL, NULL, NULL, NULL, 'resident', NULL),
+(35, 'Mark John', '', 'Jopia', 'resident2@gmail.com', '$2y$10$k1L9Q3mIyYOSTHTNa28Vr.rxu7Krym/cJdNK7Hx6oYU9SEcrnvy3K', '2147483647', 'sinawal', NULL, NULL, NULL, NULL, 'resident', NULL);
 
 --
 -- Indexes for dumped tables
@@ -303,19 +310,19 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `admin_activity_logs`
 --
 ALTER TABLE `admin_activity_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `admin_logs`
 --
 ALTER TABLE `admin_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `complaints`
 --
 ALTER TABLE `complaints`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `users`
