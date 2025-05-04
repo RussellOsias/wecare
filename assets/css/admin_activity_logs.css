@@ -1,0 +1,118 @@
+
+.main-content {
+    padding: 20px;
+    margin-left: 250px;
+    transition: margin-left 0.3s;
+}
+
+.filter-container {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filter-input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    color: #000;
+}
+
+.filter-btn {
+    padding: 8px 16px;
+    background: #0011ff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.log-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.log-table th {
+    position: sticky;
+    top: 0;
+    background: #d9ddeb;
+    padding: 12px;
+    text-align: left;
+    border-bottom: 2px solid #ddd;
+    color: #000;
+}
+
+.log-table td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    color: #221d1d;
+}
+
+.log-table tr:hover {
+    background-color: #f8f9fa;
+}
+
+.table-container {
+    max-height: 600px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.activity-type {
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: bold;
+    text-transform: capitalize;
+}
+
+.profile-update {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.user-creation {
+    background: #d4edda;
+    color: #155724;
+}
+
+.user-update {
+    background: #cce5ff;
+    color: #004085;
+}
+
+.user-deletion {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.complaint-assignment {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.complaint-priority {
+    background: #e2e3e5;
+    color: #383d41;
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0;
+        padding: 15px;
+    }
+    
+    .filter-container {
+        flex-direction: column;
+    }
+}

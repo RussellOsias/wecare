@@ -14,11 +14,19 @@
         <li><a href="/profile.php"><i class="fas fa-user"></i> Profile</a></li>
         
         <?php if ($_SESSION['role'] === 'admin'): ?>
-        <li><a href="/admin_logs.php"><i class="fas fa-bell"></i> Admin Logs</a></li>
+        <li><a href="/admin_logs.php"><i class="fas fa-bell"></i> Admin Log-in/Log-out Logs</a></li>
         <?php endif; ?>
 
         <?php if ($_SESSION['role'] === 'admin'): ?>
         <li><a href="/admin_activity_logs.php"><i class="fas fa-bell"></i> Admin Activity Logs</a></li>
+        <?php endif; ?>
+
+        <?php if ($_SESSION['role'] === 'admin'): ?>
+        <li><a href="/officer_activity_logs.php"><i class="fas fa-bell"></i> Officer Activity Logs</a></li>
+        <?php endif; ?>
+
+        <?php if ($_SESSION['role'] === 'admin'): ?>
+        <li><a href="/officer_logs.php"><i class="fas fa-bell"></i> Officer Log-in/Log-out Logs</a></li>
         <?php endif; ?>
 
         <?php if (in_array($_SESSION['role'], ['admin', 'officer','resident'])): ?>
