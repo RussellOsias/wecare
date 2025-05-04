@@ -34,12 +34,31 @@ try {
 
 // Fetch total users and role counts
 try {
+    // Total users
     $stmt = $conn->query("SELECT COUNT(*) AS total_users FROM users");
     $totalUsers = $stmt->fetch(PDO::FETCH_ASSOC)['total_users'];
+
+    // Users by role
     $stmt = $conn->query("SELECT role, COUNT(*) AS count FROM users GROUP BY role");
     $roleCounts = $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+
+    // Total complaints
+    $stmt = $conn->query("SELECT COUNT(*) AS total_complaints FROM complaints");
+    $totalComplaints = $stmt->fetch(PDO::FETCH_ASSOC)['total_complaints'];
+
+    // Pending complaints
+    $stmt = $conn->query("SELECT COUNT(*) AS pending_complaints FROM complaints WHERE status = 'pending'");
+    $pendingComplaints = $stmt->fetch(PDO::FETCH_ASSOC)['pending_complaints'];
+
+    // In-progress complaints
+    $stmt = $conn->query("SELECT COUNT(*) AS in_progress_complaints FROM complaints WHERE status = 'in_progress'");
+    $inProgressComplaints = $stmt->fetch(PDO::FETCH_ASSOC)['in_progress_complaints'];
+
+    // Resolved complaints (from history_complaints)
+    $stmt = $conn->query("SELECT COUNT(*) AS resolved_complaints FROM history_complaints WHERE status = 'resolved'");
+    $resolvedComplaints = $stmt->fetch(PDO::FETCH_ASSOC)['resolved_complaints'];
 } catch (PDOException $e) {
-    die("Error fetching user data: " . $e->getMessage());
+    die("Error fetching data: " . $e->getMessage());
 }
 ?>
 <!DOCTYPE html>
@@ -47,10 +66,11 @@ try {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard</title>
-  <link rel="stylesheet" href="./assets/css/style.css">
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <style>
+</head>
+<style>
   
     .dashboard-header {
       display: flex;
@@ -144,7 +164,6 @@ try {
       }
     }
   </style>
-</head>
 <body>
   <div class="dashboard-wrapper">
     <?php include 'includes/sidebar.php'; ?>
@@ -158,45 +177,68 @@ try {
         </div>
       </header>
 
+      <!-- User Statistics -->
       <section class="dashboard-stats">
-     
-        <a href="manage_users.php" class="card <?php echo $user['role'] === 'resident' ? 'disabled' : ''; ?>">
-          <i class="fas fa-users"></i> 
+        <div class="card">
+          <i class="fas fa-users"></i>
           <div>
             <span>Total Users</span>
             <strong><?php echo $totalUsers; ?></strong>
           </div>
-        </a>
-
-
-        <a href="users/admin.php" class="card <?php echo $user['role'] === 'resident' ? 'disabled' : ''; ?>">
-          <i class="fas fa-user-shield"></i> 
+        </div>
+        <div class="card">
+          <i class="fas fa-user-shield"></i>
           <div>
             <span>Admins</span>
             <strong><?php echo $roleCounts['admin'] ?? 0; ?></strong>
           </div>
-          </a>
-
-
-          <a href="users/officer.php" class="card <?php echo $user['role'] === 'resident' ? 'disabled' : ''; ?>">
-     
-          <i class="fas fa-user-tie"></i> 
+        </div>
+        <div class="card">
+          <i class="fas fa-user-tie"></i>
           <div>
             <span>Officers</span>
             <strong><?php echo $roleCounts['officer'] ?? 0; ?></strong>
           </div>
-          </a>
-
-
-        <a href="users/resident.php" class="card <?php echo $user['role'] === 'resident' ? 'disabled' : ''; ?>">
-     
-          <i class="fas fa-user"></i> 
+        </div>
+        <div class="card">
+          <i class="fas fa-user"></i>
           <div>
             <span>Residents</span>
             <strong><?php echo $roleCounts['resident'] ?? 0; ?></strong>
           </div>
-          </a>
+        </div>
+      </section>
 
+      <!-- Complaint Statistics -->
+      <section class="dashboard-stats">
+        <div class="card">
+          <i class="fas fa-tasks"></i>
+          <div>
+            <span>Total Complaints</span>
+            <strong><?php echo $totalComplaints; ?></strong>
+          </div>
+        </div>
+        <div class="card">
+          <i class="fas fa-hourglass-half"></i>
+          <div>
+            <span>Pending Complaints</span>
+            <strong><?php echo $pendingComplaints; ?></strong>
+          </div>
+        </div>
+        <div class="card">
+          <i class="fas fa-cogs"></i>
+          <div>
+            <span>In Progress Complaints</span>
+            <strong><?php echo $inProgressComplaints; ?></strong>
+          </div>
+        </div>
+        <div class="card">
+          <i class="fas fa-check-circle"></i>
+          <div>
+            <span>Resolved Complaints</span>
+            <strong><?php echo $resolvedComplaints; ?></strong>
+          </div>
+        </div>
       </section>
     </main>
   </div>
