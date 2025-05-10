@@ -10,6 +10,10 @@
         <?php if (in_array($_SESSION['role'], ['admin', 'officer'])): ?>
         <li><a href="/manage_users.php"><i class="fas fa-users"></i> User Management</a></li>
         <?php endif; ?>
+
+        <?php if (in_array($_SESSION['role'], ['admin', 'officer'])): ?>
+        <li><a href="/notification.php"><i class="fas fa-users"></i> Notifications</a></li>
+        <?php endif; ?>
         
         <li><a href="/profile.php"><i class="fas fa-user"></i> Profile</a></li>
         
