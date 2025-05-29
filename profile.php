@@ -152,6 +152,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile Management</title>
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
         /* Profile Page Styles */
         .profile-container {
@@ -252,7 +254,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <div class="dashboard-wrapper">
-        <?php include 'includes/sidebar.php'; ?>
+          <?php include 'includes/sidebar.php'; ?>
         
         <main class="main-content">
             <div class="profile-container">

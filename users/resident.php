@@ -23,7 +23,6 @@ if (isset($_GET['search'])) {
         $stmt->execute();
         $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Return JSON response for AJAX
         echo json_encode($users);
         exit();
     } catch (PDOException $e) {
@@ -39,19 +38,93 @@ if (isset($_GET['search'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resident Users</title>
     <link rel="stylesheet" href="../assets/css/style.css">
+       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+        <style>
+    .search-bar input,
+    .filter-bar select {
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.3s;
+    }
+
+    .search-bar input:focus,
+    .filter-bar select:focus {
+        border-color: #007bff;
+    }
+
+    .back-btn {
+        background-color: #007bff;
+        color: #fff;
+        text-decoration: none;
+        padding: 8px 14px;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: background-color 0.3s;
+        font-size: 14px;
+    }
+
+    .back-btn:hover {
+        background-color: #0056b3;
+    }
+
+    .action-btn {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        font-size: 14px;
+        cursor: pointer;
+        margin-right: 6px;
+    }
+
+    .edit-btn {
+        background-color: #ffc107;
+        color: #000;
+    }
+
+    .edit-btn:hover {
+        background-color: #e0a800;
+    }
+
+    .delete-btn {
+        background-color: #dc3545;
+        color: #fff;
+    }
+
+    .delete-btn:hover {
+        background-color: #bd2130;
+    }
+
+  
+</style>
+
 </head>
 <body>
     <div class="dashboard-wrapper">
-      
+        <?php include '../includes/sidebar.php'; ?> <!-- Add sidebar -->
+
         <main class="main-content">
             <div class="container">
                 <h2>Resident Users</h2>
+
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <div class="search-bar">
                         <input type="text" id="searchInput" placeholder="Search by name or email">
                     </div>
+                    <div style="display: flex; gap: 10px;">
+                        <a href="../users/admin.php" class="back-btn">Admins</a>
+                        <a href="../users/officer.php" class="back-btn">Officers</a>
+                        <a href="../users/resident.php" class="back-btn">Residents</a>
+                        <?php if ($_SESSION['role'] === 'admin'): ?>
+                            <a href="../add_users.php" class="back-btn">Add Users</a>
+                        <?php endif; ?>
+                    </div>
                     <a href="../manage_users.php" class="back-btn">Back to User Management</a>
                 </div>
+
                 <table id="userTable">
                     <thead>
                         <tr>
@@ -63,13 +136,15 @@ if (isset($_GET['search'])) {
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- User rows will be dynamically populated here -->
+                        <!-- Resident rows will be dynamically populated here -->
                     </tbody>
                 </table>
+
                 <a href="../dashboard.php" class="back-btn">Back to Dashboard</a>
             </div>
         </main>
     </div>
+
     <script>
         // Fetch users and populate the table
         async function fetchUsers(search = '') {

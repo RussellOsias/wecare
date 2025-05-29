@@ -72,11 +72,11 @@ try {
         .log-table th {
             position: sticky;
             top: 0;
-            background:rgb(217, 221, 235);
+            background:rgb(61, 114, 211);
             padding: 12px;
             text-align: left;
             border-bottom: 2px solid #ddd;
-            color:rgb(0, 0, 0); 
+            color:rgb(255, 255, 255); 
         }
 
         .log-table td {

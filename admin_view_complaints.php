@@ -8,21 +8,45 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     exit();
 }
 
-// Handle priority filter
-$filter = isset($_GET['filter']) ? $_GET['filter'] : 'all';
-$where_clause = '';
-switch ($filter) {
-    case 'high':
-        $where_clause = "AND c.priority = 'high'";
-        break;
-    case 'medium':
-        $where_clause = "AND c.priority = 'medium'";
-        break;
-    case 'low':
-        $where_clause = "AND c.priority = 'low'";
-        break;
-    default:
-        $where_clause = "";
+// Handle filters and search inputs
+$priority_filter = isset($_GET['priority_filter']) ? $_GET['priority_filter'] : 'all';
+$status_filter = isset($_GET['status_filter']) ? $_GET['status_filter'] : 'all';
+$search_title_desc = isset($_GET['search_title_desc']) ? trim($_GET['search_title_desc']) : '';
+$search_resident = isset($_GET['search_resident']) ? trim($_GET['search_resident']) : '';
+
+$where_clauses = [];
+$params = [];
+
+// Priority filter
+if (in_array($priority_filter, ['high', 'medium', 'low'])) {
+    $where_clauses[] = "c.priority = :priority_filter";
+    $params[':priority_filter'] = $priority_filter;
+}
+
+// Status filter
+if (in_array($status_filter, ['pending', 'in_progress', 'resolved'])) {
+    $where_clauses[] = "c.status = :status_filter";
+    $params[':status_filter'] = $status_filter;
+} else {
+    // Default to show pending and in_progress if no valid status filter
+    $where_clauses[] = "(c.status = 'pending' OR c.status = 'in_progress')";
+}
+
+// Search title or description
+if ($search_title_desc !== '') {
+    $where_clauses[] = "(c.title LIKE :search_title_desc OR c.description LIKE :search_title_desc)";
+    $params[':search_title_desc'] = "%$search_title_desc%";
+}
+
+// Search resident name (first or last)
+if ($search_resident !== '') {
+    $where_clauses[] = "(u.first_name LIKE :search_resident OR u.last_name LIKE :search_resident)";
+    $params[':search_resident'] = "%$search_resident%";
+}
+
+$where_sql = '';
+if (count($where_clauses) > 0) {
+    $where_sql = 'WHERE ' . implode(' AND ', $where_clauses);
 }
 
 // Fetch all complaints from the database
@@ -42,60 +66,212 @@ try {
         FROM complaints c 
         JOIN users u ON c.resident_id = u.id 
         LEFT JOIN users o ON c.assigned_officer_id = o.id 
-        WHERE (c.status = 'pending' OR c.status = 'in_progress') $where_clause
+        $where_sql
         ORDER BY 
             CASE 
                 WHEN c.priority = 'high' THEN 1 
                 WHEN c.priority = 'medium' THEN 2 
                 WHEN c.priority = 'low' THEN 3 
                 ELSE 4 
-            END
+            END, c.created_at DESC
     ");
-    $stmt->execute();
+    $stmt->execute($params);
     $complaints = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
     die("Error fetching complaints: " . $e->getMessage());
+}
+
+// Handle delete request if any (via GET for simplicity, better to do POST in real apps)
+if (isset($_GET['delete_id'])) {
+    $delete_id = intval($_GET['delete_id']);
+    try {
+        $del_stmt = $conn->prepare("DELETE FROM complaints WHERE id = :id");
+        $del_stmt->execute([':id' => $delete_id]);
+        header("Location: admin_complaints.php"); // Reload page to update list
+        exit();
+    } catch (Exception $e) {
+        die("Error deleting complaint: " . $e->getMessage());
+    }
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Admin - View Complaints</title>
-  <link rel="stylesheet" href="./assets/css/admin_complaint.css">
+  <link rel="stylesheet" href="./assets/css/admin_complaint.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* Additional styles for new features */
+    .filters-wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+    }
+    .filter-group label {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    input[type="search"] {
+      padding: 7px 10px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      width: 200px;
+      max-width: 100%;
+    }
+    select {
+      padding: 7px 10px;
+      font-size: 1rem;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      background: #fff;
+    }
+    .btn-delete {
+      background-color: #e74c3c;
+      color: white;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      font-size: 0.9rem;
+    }
+    .btn-delete:hover {
+      background-color: #c0392b;
+    }
+    .action-buttons a, .action-buttons button {
+      margin-right: 6px;
+      text-decoration: none;
+      padding: 5px 10px;
+      border-radius: 3px;
+      font-size: 0.9rem;
+    }
+    .btn-priority {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-priority:hover {
+      background-color: #2980b9;
+    }
+    .btn-officer {
+      background-color: #2ecc71;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-officer:hover {
+      background-color: #27ae60;
+    }
+
+    /* Responsive Table */
+    @media (max-width: 900px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+      thead tr {
+        display: none;
+      }
+      tbody tr {
+        margin-bottom: 1.5rem;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 10px;
+      }
+      tbody td {
+        padding-left: 50%;
+        position: relative;
+        text-align: left;
+        border: none;
+        border-bottom: 1px solid #eee;
+      }
+      tbody td:before {
+        position: absolute;
+        top: 10px;
+        left: 15px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        font-weight: 600;
+        content: attr(data-label);
+      }
+      .action-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+    }
+  </style>
 </head>
 <body>
   <div class="dashboard-wrapper">
-    <!-- Sidebar -->
-    <div class="sidebar">
-      <div class="logo-container">
-        <img src="../assets/images/logo.png" alt="Logo" class="logo">
-        <h2>WeCare</h2>
-      </div>
-      <ul>
-        <li><a href="/dashboard.php"><i class="fas fa-home"></i> Home</a></li>
-        <li><a href="/admin_view_complaints.php"><i class="fas fa-exclamation-circle"></i> Complaints</a></li>
-        <li><a href="#"><i class="fas fa-users"></i> Officers</a></li>
-      </ul>
-      <button class="logout-btn" onclick="window.location.href='/logout.php'">Logout</button>
-    </div>
+    <?php include 'includes/sidebar.php'; ?>
 
-    <!-- Main Content -->
     <div class="main-content">
       <div class="dashboard-header">
-        <h1>Pending and In-Progress Complaints</h1>
-        <div class="filter-dropdown">
+        <h1>Complaints Management</h1>
+      </div>
+
+      <form method="GET" action="" class="filters-wrapper" onsubmit="return true;">
+        <div class="filter-group">
           <label for="priority-filter">Filter by Priority:</label>
-          <select id="priority-filter" onchange="location = this.value;">
-            <option value="?filter=all" <?= $filter === 'all' ? 'selected' : '' ?>>All</option>
-            <option value="?filter=high" <?= $filter === 'high' ? 'selected' : '' ?>>High</option>
-            <option value="?filter=medium" <?= $filter === 'medium' ? 'selected' : '' ?>>Medium</option>
-            <option value="?filter=low" <?= $filter === 'low' ? 'selected' : '' ?>>Low</option>
+          <select id="priority-filter" name="priority_filter" onchange="this.form.submit()">
+            <option value="all" <?= $priority_filter === 'all' ? 'selected' : '' ?>>All</option>
+            <option value="high" <?= $priority_filter === 'high' ? 'selected' : '' ?>>High</option>
+            <option value="medium" <?= $priority_filter === 'medium' ? 'selected' : '' ?>>Medium</option>
+            <option value="low" <?= $priority_filter === 'low' ? 'selected' : '' ?>>Low</option>
           </select>
         </div>
-      </div>
+
+        <div class="filter-group">
+          <label for="status-filter">Filter by Status:</label>
+          <select id="status-filter" name="status_filter" onchange="this.form.submit()">
+            <option value="all" <?= $status_filter === 'all' ? 'selected' : '' ?>>All</option>
+            <option value="pending" <?= $status_filter === 'pending' ? 'selected' : '' ?>>Pending</option>
+            <option value="in_progress" <?= $status_filter === 'in_progress' ? 'selected' : '' ?>>In Progress</option>
+            <option value="resolved" <?= $status_filter === 'resolved' ? 'selected' : '' ?>>Resolved</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="search-title-desc">Search Title or Description:</label>
+          <input
+            type="search"
+            id="search-title-desc"
+            name="search_title_desc"
+            placeholder="Search title or description"
+            value="<?= htmlspecialchars($search_title_desc) ?>"
+            oninput="debounceSubmit(this.form)"
+          />
+        </div>
+
+        <div class="filter-group">
+          <label for="search-resident">Search Resident Name:</label>
+          <input
+            type="search"
+            id="search-resident"
+            name="search_resident"
+            placeholder="Search resident name"
+            value="<?= htmlspecialchars($search_resident) ?>"
+            oninput="debounceSubmit(this.form)"
+          />
+        </div>
+
+        <noscript>
+          <button type="submit">Apply Filters</button>
+        </noscript>
+      </form>
 
       <?php if (empty($complaints)): ?>
         <p>No complaints found.</p>
@@ -116,17 +292,18 @@ try {
           <tbody>
             <?php foreach ($complaints as $complaint): ?>
               <tr>
-                <td><?= htmlspecialchars($complaint['id']) ?></td>
-                <td><?= htmlspecialchars($complaint['resident_first_name'] ?? 'Unknown') . ' ' . htmlspecialchars($complaint['resident_last_name'] ?? 'Unknown') ?></td>
-                <td><?= htmlspecialchars($complaint['title']) ?></td>
-                <td><?= htmlspecialchars($complaint['description']) ?></td>
-                <td><?= htmlspecialchars($complaint['status']) ?></td>
-                <td><?= htmlspecialchars($complaint['priority'] ?? 'Not Set') ?></td>
-                <td><?= htmlspecialchars($complaint['officer_first_name'] ?? 'Not Assigned') . ' ' . htmlspecialchars($complaint['officer_last_name'] ?? '') ?></td>
-                <td>
+                <td data-label="ID"><?= htmlspecialchars($complaint['id']) ?></td>
+                <td data-label="Resident"><?= htmlspecialchars($complaint['resident_first_name'] ?? 'Unknown') . ' ' . htmlspecialchars($complaint['resident_last_name'] ?? 'Unknown') ?></td>
+                <td data-label="Title"><?= htmlspecialchars($complaint['title']) ?></td>
+                <td data-label="Description"><?= htmlspecialchars($complaint['description']) ?></td>
+                <td data-label="Status"><?= htmlspecialchars(ucfirst(str_replace('_', ' ', $complaint['status']))) ?></td>
+                <td data-label="Priority"><?= htmlspecialchars(ucfirst($complaint['priority'] ?? 'Not Set')) ?></td>
+                <td data-label="Assigned Officer"><?= htmlspecialchars($complaint['officer_first_name'] ?? 'Not Assigned') . ' ' . htmlspecialchars($complaint['officer_last_name'] ?? '') ?></td>
+                <td data-label="Actions">
                   <div class="action-buttons">
-                    <a href="set_priority.php?id=<?= $complaint['id'] ?>" class="btn btn-priority">Set Priority</a>
-                    <a href="assign_officer.php?id=<?= $complaint['id'] ?>" class="btn btn-officer">Assign Officer</a>
+                    <a href="set_priority.php?id=<?= $complaint['id'] ?>" class="btn btn-priority" title="Set Priority">Priority</a>
+                    <a href="assign_officer.php?id=<?= $complaint['id'] ?>" class="btn btn-officer" title="Assign Officer">Officer</a>
+                    
                   </div>
                 </td>
               </tr>
@@ -136,5 +313,16 @@ try {
       <?php endif; ?>
     </div>
   </div>
+
+  <script>
+    // Debounce function for search inputs to reduce number of form submits on typing
+    let debounceTimeout;
+    function debounceSubmit(form) {
+      clearTimeout(debounceTimeout);
+      debounceTimeout = setTimeout(() => {
+        form.submit();
+      }, 500);
+    }
+  </script>
 </body>
 </html>

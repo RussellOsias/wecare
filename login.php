@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = htmlspecialchars($_POST['email']);
     $password = $_POST['password'];
     $captcha = $_POST['captcha'] ?? '';
-
+    
     // CAPTCHA validation
     if (strcasecmp($captcha, $_SESSION['captcha_code']) !== 0) {
         $errors[] = "CAPTCHA verification failed";
@@ -29,13 +29,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Send OTP
             if (sendOTP($email, $otp)) {
+                // Clear failed attempts on successful login
+                $stmt = $conn->prepare("DELETE FROM login_attempts WHERE email = :email");
+                $stmt->execute([':email' => $email]);
+                
                 header("Location: verify_otp.php");
                 exit();
             } else {
                 $errors[] = "Failed to send OTP. Please try again.";
             }
         } else {
-            $errors[] = "Invalid email or password.";
+            // Log failed attempt
+            $stmt = $conn->prepare("INSERT INTO login_attempts (email, successful) VALUES (:email, 0)");
+            $stmt->execute([':email' => $email,]);
+            
+            // Check failed attempts in last hour
+            $stmt = $conn->prepare("SELECT COUNT(*) as attempts FROM login_attempts 
+                                  WHERE email = :email
+                                  AND attempt_time > DATE_SUB(NOW(), INTERVAL 1 HOUR)
+                                  AND successful = 0");
+            $stmt->execute([':email' => $email]);
+            $attempts = $stmt->fetch(PDO::FETCH_ASSOC)['attempts'];
+            
+            if ($attempts >= 3) {
+                // Get user ID for notification
+                $stmt = $conn->prepare("SELECT id FROM users WHERE email = :email");
+                $stmt->execute([':email' => $email]);
+                $user = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                if ($user) {
+                    // Create security notification
+                    $stmt = $conn->prepare("INSERT INTO notifications (user_id, message) 
+                                          VALUES (:user_id, :message)");
+                    $stmt->execute([
+                        ':user_id' => $user['id'],
+                        ':message' => "Security Alert: 3 failed login attempts detected at " . date('F j, Y, g:i a')
+                    ]);
+                }
+                
+                $errors[] = "Too many failed attempts.";
+            } else {
+                $errors[] = "Invalid email or password. Attempts remaining: " . (3 - $attempts);
+            }
         }
     }
 
@@ -150,12 +185,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <input type="checkbox" id="remember">
           <p>Remember me</p>
         </label>
-        <a href="#">Forgot password?</a>
+       <a href="forgot_password.php">Forgot password?</a>
       </div>
 
       <button type="submit">Log In</button>
       <div class="register">
-        <p>Don't have an account? <a href="register.php">Register</a></p>
+    
       </div>
     </form>
   </div>

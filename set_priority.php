@@ -1,4 +1,4 @@
-<?php
+<?php 
 session_start();
 require_once 'includes/db_conn.php';
 
@@ -8,14 +8,17 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     exit();
 }
 
-$complaint_id = $_GET['id'];
+$complaint_id = $_GET['id'] ?? null;
+if (!$complaint_id) {
+    die("Complaint ID is required.");
+}
 
 // Fetch current complaint with resident info
 try {
     $stmt = $conn->prepare("SELECT c.*, u.id as resident_id FROM complaints c JOIN users u ON c.resident_id = u.id WHERE c.id = ?");
     $stmt->execute([$complaint_id]);
     $complaint = $stmt->fetch();
-    
+
     if (!$complaint) {
         die("Complaint not found.");
     }
@@ -24,38 +27,41 @@ try {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $priority = $_POST['priority'];
-    
+    $priority = $_POST['priority'] === '' ? null : $_POST['priority'];
+
     if ($complaint['priority'] !== $priority) {
         try {
             $conn->beginTransaction();
-            
-            // Update priority
+
+            // Update priority (allow NULL if blank)
             $stmt = $conn->prepare("UPDATE complaints SET priority = ? WHERE id = ?");
             $stmt->execute([$priority, $complaint_id]);
-            
+
             // Get admin's details who made the change
             $admin_stmt = $conn->prepare("SELECT first_name, last_name FROM users WHERE id = ?");
             $admin_stmt->execute([$_SESSION['user_id']]);
             $admin = $admin_stmt->fetch();
             $admin_name = $admin['first_name'] . ' ' . $admin['last_name'];
-            
+
+            $oldPriority = $complaint['priority'] ?? '(none)';
+            $newPriority = $priority ?? '(none)';
+
             // Log activity with admin name
-            $action = "$admin_name changed priority from {$complaint['priority']} to $priority for complaint #$complaint_id";
-            
+            $action = "$admin_name changed priority from {$oldPriority} to {$newPriority} for complaint #$complaint_id";
+
             $log_stmt = $conn->prepare("INSERT INTO admin_activity_logs 
                 (admin_id, activity_type, action, user_affected_id) 
                 VALUES (?, ?, ?, ?)");
-            
+
             $log_stmt->execute([
                 $_SESSION['user_id'],
-                'complaint_priority',  // Specific activity type
+                'complaint_priority',
                 $action,
-                $complaint['resident_id']  // The resident who made the complaint
+                $complaint['resident_id']
             ]);
-            
+
             $conn->commit();
-            
+
             header("Location: admin_view_complaints.php");
             exit();
         } catch (PDOException $e) {
@@ -68,30 +74,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
-<!-- Your exact original HTML (unchanged) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Set Priority</title>
-  <link rel="stylesheet" href="./assets/css/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Set Priority - Complaint #<?= htmlspecialchars($complaint_id) ?></title>
+  <link rel="stylesheet" href="./assets/css/style.css" />
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    /* Only styling the button and dropdown */
+    form.input-field select {
+      padding: 8px 12px;
+      border-radius: 5px;
+      border: 1.5px solid #3498db;
+      font-size: 1rem;
+      color: #2c3e50;
+      background-color: white;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+    form.input-field select:focus {
+      border-color: #2980b9;
+      box-shadow: 0 0 5px #2980b9;
+    }
+
+    form.input-field button.back-btn {
+      margin-top: 20px;
+      padding: 10px 18px;
+      background-color: #3498db;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      width: 100%;
+      max-width: 180px;
+    }
+    form.input-field button.back-btn:hover {
+      background-color: #2980b9;
+    }
+  </style>
 </head>
 <body>
   <div class="dashboard-wrapper">
+      <?php include 'includes/sidebar.php'; ?>
     <!-- Sidebar -->
-    <div class="sidebar">
-      <div class="logo-container">
-        <img src="../images/logo.png" alt="Logo" class="logo">
-        <h2>WeCare</h2>
-      </div>
-      <ul>
-        <li><a href="#"><i class="fas fa-home"></i> Dashboard</a></li>
-        <li><a href="admin_view_complaints.php"><i class="fas fa-exclamation-circle"></i> Complaints</a></li>
-        <li><a href="#"><i class="fas fa-users"></i> Officers</a></li>
-      </ul>
-      <button class="logout-btn">Logout</button>
-    </div>
+
 
     <!-- Main Content -->
     <div class="main-content">
@@ -99,9 +131,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <h1>Set Priority for Complaint #<?= htmlspecialchars($complaint_id) ?></h1>
       </div>
 
-      <form method="POST" class="input-field">
+      <form method="POST" class="input-field" autocomplete="off">
         <label for="priority">Priority:</label>
-        <select id="priority" name="priority" required>
+        <select id="priority" name="priority">
+          <option value="" <?= $complaint['priority'] === null || $complaint['priority'] === '' ? 'selected' : '' ?>>-- No Priority --</option>
           <option value="low" <?= $complaint['priority'] === 'low' ? 'selected' : '' ?>>Low</option>
           <option value="medium" <?= $complaint['priority'] === 'medium' ? 'selected' : '' ?>>Medium</option>
           <option value="high" <?= $complaint['priority'] === 'high' ? 'selected' : '' ?>>High</option>
